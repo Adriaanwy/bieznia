@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="bieżnia – serwis wyników zawodów lekkoatletycznych. Wyniki, liczby, postęp. Sezon 2026.">
+  <title>bieżnia – Wyniki zawodów lekkoatletycznych</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- =========================================================
+       GŁÓWNY NAGŁÓWEK APLIKACJI I NAWIGACJA
+       ========================================================= -->
+  <header class="app-header">
+    <div class="header-inner container">
+      <div class="brand">
+        <a href="#o-projekcie" class="brand-link" aria-label="bieżnia - strona główna">
+          <div class="brand-logo" aria-hidden="true">
+            <!-- Ikona toru lekkoatletycznego -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19V9a8 8 0 0 1 16 0v10" />
+              <path d="M8 19v-9a4 4 0 0 1 8 0v9" />
+              <path d="M12 19v-5" />
+            </svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-name">bieżnia</span>
+            <span class="brand-tagline">WYNIKI. LICZBY. POSTĘP.</span>
+          </div>
+        </a>
+      </div>
+
+      <nav class="main-nav" aria-label="Główna nawigacja">
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="#o-projekcie" class="nav-link active">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+              <span>O projekcie</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#baza-wynikow" class="nav-link">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <line x1="3" y1="9" x2="21" y2="9"/>
+                <line x1="9" y1="21" x2="9" y2="9"/>
+              </svg>
+              <span>Baza wyników</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#analiza" class="nav-link">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="18" y1="20" x2="18" y2="10"/>
+                <line x1="12" y1="20" x2="12" y2="4"/>
+                <line x1="6" y1="20" x2="6" y2="14"/>
+              </svg>
+              <span>Analiza</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#dodaj-wynik" class="nav-link">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="16"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
+              </svg>
+              <span>Dodaj wynik</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="header-badge-wrapper">
+        <span class="badge-demo">WERSJA DEMO</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobilna nawigacja dolna (dla smartfonów) -->
+  <nav class="mobile-bottom-nav" aria-label="Nawigacja mobilna">
+    <a href="#o-projekcie" class="mobile-nav-link active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      </svg>
+      <span>Start</span>
+    </a>
+    <a href="#baza-wynikow" class="mobile-nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        <line x1="3" y1="9" x2="21" y2="9"/>
+      </svg>
+      <span>Wyniki</span>
+    </a>
+    <a href="#analiza" class="mobile-nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="18" y1="20" x2="18" y2="10"/>
+        <line x1="12" y1="20" x2="12" y2="4"/>
+        <line x1="6" y1="20" x2="6" y2="14"/>
+      </svg>
+      <span>Analiza</span>
+    </a>
+    <a href="#dodaj-wynik" class="mobile-nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="16"/>
+        <line x1="8" y1="12" x2="16" y2="12"/>
+      </svg>
+      <span>Dodaj</span>
+    </a>
+  </nav>
+
+  <!-- =========================================================
+       GŁÓWNA ZAWARTOŚĆ APLIKACJI
+       ========================================================= -->
+  <main id="main-content">
+
+    <!-- =========================================================
+         SEKCJA 1: START / O PROJEKCIE
+         ========================================================= -->
+    <section id="o-projekcie" class="app-section section-start">
+      <div class="container">
+        
+        <!-- Kategoria / Breadcrumb -->
+        <div class="section-tag">
+          <span class="tag-dash" aria-hidden="true">—</span>
+          <span class="tag-text">LEKKOATLETYKA / SEZON 2026</span>
+        </div>
+
+        <!-- Siatka Hero -->
+        <div class="hero-grid">
+          <div class="hero-content">
+            <h1 class="hero-title">Wyniki zawodów lekkoatletycznych</h1>
+            <p class="hero-subtitle">Każdy start. W czytelnej perspektywie.</p>
+            <p class="hero-description">
+              Jedno miejsce do przeglądania wyników, odkrywania liderów i śledzenia sportowego postępu.
+              Dla zawodników, trenerów i wszystkich, którzy lubią liczby.
+            </p>
+            <div class="hero-actions">
+              <a href="#baza-wynikow" class="btn btn-primary">
+                <span>Przeglądaj wyniki</span>
+                <span class="btn-arrow" aria-hidden="true">↗</span>
+              </a>
+              <a href="#analiza" class="btn btn-secondary">
+                <span>Poznaj analizę</span>
+                <span class="btn-arrow" aria-hidden="true">↗</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Karta wizualna Hero z badge'em demonstracyjnym -->
+          <div class="hero-card-wrapper">
+            <figure class="hero-figure">
+              <div class="hero-image-overlay">
+                <span class="perspective-badge">Z PERSPEKTYWY BIEŻNI</span>
+              </div>
+              <img 
+                src="https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=1200&auto=format&fit=crop" 
+                alt="Czerwony tartanowy tor lekkoatletyczny na stadionie ze sportowcem w biegu" 
+                class="hero-img"
+              >
+              <!-- Pływająca karta lidera -->
+              <div class="hero-floating-card">
+                <div class="floating-card-top">
+                  <span class="floating-category">100 M • MĘŻCZYŹNI OPEN</span>
+                  <span class="floating-demo-pill">DEMO</span>
+                </div>
+                <div class="floating-card-body">
+                  <div class="floating-athlete">
+                    <span class="athlete-name">Jakub Nowak</span>
+                    <span class="athlete-club">AZS Warszawa</span>
+                  </div>
+                  <div class="floating-score">
+                    <span class="score-value">10,84</span>
+                    <span class="score-unit">s</span>
+                  </div>
+                </div>
+              </div>
+            </figure>
+          </div>
+        </div>
+
+        <!-- Pasek statystyk kluczowych bazy -->
+        <div class="stats-strip">
+          <div class="stats-grid">
+            <div class="stat-item">
+              <span class="stat-number">18</span>
+              <span class="stat-label">wyników w bazie</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">3</span>
+              <span class="stat-label">konkurencje</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">4</span>
+              <span class="stat-label">kluby sportowe</span>
+            </div>
+          </div>
+          <p class="stats-footnote">
+            Przykładowa baza: mężczyźni open • 10–24 maja 2026 • dane demonstracyjne
+          </p>
+        </div>
+
+        <!-- Od wyniku do wniosków: Karty szybkich przejść -->
+        <div class="features-block">
+          <h2 class="block-heading">Od wyniku do wniosków</h2>
+          <div class="feature-cards-grid">
+            
+            <article class="feature-card">
+              <div class="card-icon-header">
+                <div class="feature-icon feature-icon-blue">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="3" y1="9" x2="21" y2="9"/>
+                    <line x1="9" y1="21" x2="9" y2="9"/>
+                  </svg>
+                </div>
+                <span class="card-arrow" aria-hidden="true">↗</span>
+              </div>
+              <h3 class="feature-card-title">Baza wyników</h3>
+              <p class="feature-card-text">
+                Znajdź zawodnika, wybierz konkurencję i porównaj wyniki z zawodów.
+              </p>
+              <a href="#baza-wynikow" class="feature-card-link">
+                <span>Przeglądaj 18 wyników</span>
+                <span aria-hidden="true">→</span>
+              </a>
+            </article>
+
+            <article class="feature-card">
+              <div class="card-icon-header">
+                <div class="feature-icon feature-icon-blue">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="18" y1="20" x2="18" y2="10"/>
+                    <line x1="12" y1="20" x2="12" y2="4"/>
+                    <line x1="6" y1="20" x2="6" y2="14"/>
+                  </svg>
+                </div>
+                <span class="card-arrow" aria-hidden="true">↗</span>
+              </div>
+              <h3 class="feature-card-title">Analiza i statystyki</h3>
+              <p class="feature-card-text">
+                Sprawdź średnie, liderów konkurencji oraz zgłoszone rekordy życiowe.
+              </p>
+              <a href="#analiza" class="feature-card-link">
+                <span>Zobacz analizę</span>
+                <span aria-hidden="true">→</span>
+              </a>
+            </article>
+
+            <article class="feature-card">
+              <div class="card-icon-header">
+                <div class="feature-icon feature-icon-blue">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="16"/>
+                    <line x1="8" y1="12" x2="16" y2="12"/>
+                  </svg>
+                </div>
+                <span class="card-arrow" aria-hidden="true">↗</span>
+              </div>
+              <h3 class="feature-card-title">Twój wynik ma znaczenie</h3>
+              <p class="feature-card-text">
+                Uzupełnij bazę o swój start. Dodaj wynik i podstawowe informacje.
+              </p>
+              <a href="#dodaj-wynik" class="feature-card-link">
+                <span>Dodaj wynik</span>
+                <span aria-hidden="true">→</span>
+              </a>
+            </article>
+
+          </div>
+        </div>
+
+        <!-- Sekcja Ostatnio w bazie + O Projekcie -->
+        <div class="showcase-grid">
+          
+          <!-- Lewa karta: Ostatnio w bazie -->
+          <article class="recent-results-card">
+            <header class="recent-card-header">
+              <div class="recent-title-group">
+                <h3 class="recent-card-title">Ostatnio w bazie</h3>
+                <span class="category-meta">100 m • mężczyźni open</span>
+              </div>
+              <span class="date-badge">24.05.2026</span>
+            </header>
+
+            <ul class="recent-list">
+              <li class="recent-item">
+                <div class="recent-athlete-info">
+                  <span class="recent-athlete-name">Jakub Nowak</span>
+                  <span class="recent-athlete-club">AZS Warszawa</span>
+                </div>
+                <div class="recent-score">
+                  <span class="score-big">10,84</span>
+                  <span class="unit">s</span>
+                </div>
+              </li>
+              <li class="recent-item">
+                <div class="recent-athlete-info">
+                  <span class="recent-athlete-name">Michał Kowalski</span>
+                  <span class="recent-athlete-club">KS Sprint Kraków</span>
+                </div>
+                <div class="recent-score">
+                  <span class="score-big">10,96</span>
+                  <span class="unit">s</span>
+                </div>
+              </li>
+              <li class="recent-item">
+                <div class="recent-athlete-info">
+                  <span class="recent-athlete-name">Adam Wiśniewski</span>
+                  <span class="recent-athlete-club">WKS Poznań</span>
+                </div>
+                <div class="recent-score">
+                  <span class="score-big">11,08</span>
+                  <span class="unit">s</span>
+                </div>
+              </li>
+            </ul>
+
+            <footer class="recent-card-footer">
+              <a href="#baza-wynikow" class="recent-link">
+                <span>Zobacz całą bazę</span>
+                <span aria-hidden="true">→</span>
+              </a>
+            </footer>
+          </article>
+
+          <!-- Prawa karta: Ciemna karta informacyjna o projekcie -->
+          <article class="about-dark-card">
+            <span class="about-card-eyebrow">O PROJEKCIE</span>
+            <h3 class="about-card-title">Sportowe emocje. Uporządkowane dane.</h3>
+            <p class="about-card-text">
+              Bieżnia pomaga zrozumieć wynik w kontekście jego konkurencji.
+              Nie mieszamy sekund z metrami — porównujemy to, co naprawdę porównywalne.
+            </p>
+
+            <ul class="principles-list">
+              <li class="principle-item">
+                <span class="principle-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                </span>
+                <span>W biegach wygrywa krótszy czas.</span>
+              </li>
+              <li class="principle-item">
+                <span class="principle-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="7 17 2 12 7 7"/>
+                    <polyline points="17 7 22 12 17 17"/>
+                    <line x1="2" y1="12" x2="22" y2="12"/>
+                  </svg>
+                </span>
+                <span>W skoku w dal liczy się większa odległość.</span>
+              </li>
+              <li class="principle-item">
+                <span class="principle-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    <polyline points="9 12 11 14 15 10"/>
+                  </svg>
+                </span>
+                <span><strong>RŻ</strong> oznacza zgłoszony rekord życiowy.</span>
+              </li>
+            </ul>
+
+            <p class="about-card-disclaimer">
+              To projekt demonstracyjny, nie oficjalny serwis wynikowy. Wszystkie dane w aplikacji są fikcyjne.
+            </p>
+          </article>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =========================================================
+         SEKCJA 2: BAZA WYNIKÓW
+         ========================================================= -->
+    <section id="baza-wynikow" class="app-section section-baza">
+      <div class="container">
+        
+        <header class="section-header-row">
+          <div>
+            <div class="section-tag">
+              <span class="tag-dash" aria-hidden="true">—</span>
+              <span class="tag-text">BAZA / SEZON 2026</span>
+            </div>
+            <h2 class="page-title">Każdy wynik się liczy.</h2>
+            <p class="page-subtitle">Wyszukuj starty i porównuj wyniki w obrębie konkurencji.</p>
+          </div>
+          <div class="header-action">
+            <button type="button" class="btn btn-outline" aria-label="Eksportuj wyniki do pliku CSV">
+              <span>Eksport CSV</span>
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <!-- Karta filtrów i wyszukiwarki -->
+        <div class="filter-card">
+          <div class="filter-header">
+            <div class="filter-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+              </svg>
+              <span>Znajdź wynik</span>
+            </div>
+            <button type="button" id="btn-clear-filters" class="btn-link" aria-label="Wyczyść wszystkie filtry wyszukiwania">Wyczyść filtry</button>
+          </div>
+
+          <form id="filters-form" class="filters-form" role="search" aria-label="Filtry wyników" onsubmit="return false;">
+            <div class="filter-group">
+              <label for="search-athlete" class="filter-label">Zawodnik</label>
+              <div class="search-input-group">
+                <div class="input-with-icon">
+                  <input 
+                    type="text" 
+                    id="search-athlete" 
+                    name="athlete" 
+                    class="form-control" 
+                    placeholder="Szukaj po imieniu i nazwisku"
+                  >
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                </div>
+                <button type="button" id="btn-search-trigger" class="btn btn-primary btn-search">Szukaj</button>
+              </div>
+            </div>
+
+            <div class="filter-group">
+              <label for="filter-discipline" class="filter-label">Konkurencja</label>
+              <select id="filter-discipline" name="discipline" class="form-control form-select">
+                <option value="all">Wszystkie konkurencje</option>
+                <option value="100 m">100 m</option>
+                <option value="400 m">400 m</option>
+                <option value="Skok w dal">Skok w dal</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label for="filter-club" class="filter-label">Klub</label>
+              <select id="filter-club" name="club" class="form-control form-select">
+                <option value="all">Wszystkie kluby</option>
+                <option value="AZS Warszawa">AZS Warszawa</option>
+                <option value="KS Sprint Kraków">KS Sprint Kraków</option>
+                <option value="WKS Poznań">WKS Poznań</option>
+                <option value="MKS Gdańsk">MKS Gdańsk</option>
+              </select>
+            </div>
+          </form>
+
+          <!-- Opcje sortowania wyników -->
+          <div class="sort-bar">
+            <span class="sort-title">Sortuj według</span>
+            <div class="sort-buttons" role="group" aria-label="Kryteria sortowania tabeli">
+              <button type="button" class="sort-btn" data-sort="data_asc">Data rosnąco ↑</button>
+              <button type="button" class="sort-btn active" data-sort="data_desc" aria-pressed="true">Data malejąco ↓</button>
+              <button type="button" class="sort-btn" data-sort="wynik_asc">Wynik rosnąco ↑</button>
+              <button type="button" class="sort-btn" data-sort="wynik_desc">Wynik malejąco ↓</button>
+            </div>
+            <p class="sort-hint">
+              Wyniki sortujemy liczbowo w ramach konkurencji. W biegach mniej = lepiej, w skoku w dal więcej = lepiej.
+            </p>
+          </div>
+        </div>
+
+        <!-- Nagłówek sekcji tabeli -->
+        <div class="table-meta-bar">
+          <div class="table-title-group">
+            <h3 class="table-title">Wyniki</h3>
+            <span id="results-count-badge" class="counter-badge">18 rekordów</span>
+          </div>
+          <div class="table-helper">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/>
+              <path d="M13 13l6 6"/>
+            </svg>
+            <span>Podświetlenie: wiersz pod kursorem</span>
+          </div>
+        </div>
+        <p class="table-subtitle">Mężczyźni open • 10–24.05.2026 • najnowsze daty najpierw</p>
+
+        <!-- Główna tabela semantyczna HTML5 z kompletnymi danymi z bazy -->
+        <div class="table-container" tabindex="0" aria-label="Tabela wyników lekkoatletycznych">
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th scope="col">ZAWODNIK</th>
+                <th scope="col">KONKURENCJA</th>
+                <th scope="col">WYNIK</th>
+                <th scope="col">KLUB</th>
+                <th scope="col" id="col-header-date" class="sorted-col">DATA ↓</th>
+              </tr>
+            </thead>
+            <tbody id="results-tbody">
+              <!-- Wiersze wstrzykiwane dynamicznie z bazy danych przez JavaScript -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Podsumowanie pod tabelą -->
+        <div class="table-footer-bar">
+          <span id="results-count-footer" class="table-counts">Wyświetlono 1–18 z 18 wyników</span>
+          <button type="button" id="btn-show-all" class="btn-link">Wszystkie rekordy na jednej stronie</button>
+        </div>
+
+        <div class="table-footnotes">
+          <p class="footnote-left">
+            <span class="badge-rz badge-rz-inline">RŻ</span>
+            <span>Rekord życiowy zadeklarowany w zgłoszeniu.</span>
+          </p>
+          <p class="footnote-right">
+            Zbiór demonstracyjny • 18 zawodników • 4 kluby
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =========================================================
+         SEKCJA 3: ANALIZA I STATYSTYKI
+         ========================================================= -->
+    <section id="analiza" class="app-section section-analiza">
+      <div class="container">
+        
+        <header class="section-header-block">
+          <div class="section-tag">
+            <span class="tag-dash" aria-hidden="true">—</span>
+            <span class="tag-text">ANALIZA / SEZON 2026</span>
+          </div>
+          <h2 class="page-title">Liczby pokazują więcej.</h2>
+          <p class="page-subtitle">Obraz formy i osiągnięć w demonstracyjnej bazie wyników.</p>
+        </header>
+
+        <!-- Pasek filtrów analitycznych -->
+        <div class="analiza-filter-bar">
+          <div class="filter-pills-group">
+            <div class="date-select-pill">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              <span>10–24 maja 2026</span>
+              <span class="arrow-down" aria-hidden="true">▾</span>
+            </div>
+            <span class="category-pill">Mężczyźni open</span>
+          </div>
+          <span class="analiza-meta-text">Cała baza • 18 startów • 3 konkurencje</span>
+        </div>
+
+        <!-- 3 Karty KPI / wskaźników -->
+        <div class="kpi-grid">
+          
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Wyniki w bazie</span>
+              <div class="kpi-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                  <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                  <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                </svg>
+              </div>
+            </div>
+            <div class="kpi-value">18</div>
+            <div class="kpi-desc">18 zawodników • wszystkie konkurencje</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Średni wynik • 100 m</span>
+              <div class="kpi-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+              </div>
+            </div>
+            <div class="kpi-value">11,14 <span class="kpi-unit">s</span></div>
+            <div class="kpi-desc">Średnia arytmetyczna z 6 wyników na 100 m</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Kluby w bazie</span>
+              <div class="kpi-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+                  <line x1="4" y1="22" x2="4" y2="15"/>
+                </svg>
+              </div>
+            </div>
+            <div class="kpi-value">4</div>
+            <div class="kpi-desc">Dwa kluby po 5 startów, dwa po 4</div>
+          </div>
+
+        </div>
+
+        <!-- Główny wykres słupkowy (czysty CSS Flexbox & Grid) -->
+        <article class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <h3 class="chart-title">100 m. Jeden dystans, sześć wyników.</h3>
+              <p class="chart-subtitle">24.05.2026 • mężczyźni open • czas w sekundach</p>
+            </div>
+            <div class="chart-controls">
+              <select class="form-control form-select chart-select" aria-label="Wybierz konkurencję do wykresu">
+                <option value="100m">100 m</option>
+                <option value="400m">400 m</option>
+                <option value="skok">Skok w dal</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Legenda wykresu -->
+          <div class="chart-legend-bar">
+            <div class="legend-item">
+              <span class="legend-color legend-color-leader" aria-hidden="true"></span>
+              <span>Najlepszy wynik</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color legend-color-standard" aria-hidden="true"></span>
+              <span>Pozostałe wyniki</span>
+            </div>
+            <span class="legend-rule">Krótszy czas = lepszy wynik</span>
+          </div>
+
+          <!-- Słupki wykresu (CSS Grid & Flexbox) -->
+          <div class="bar-chart-container" role="region" aria-label="Wykres porównawczy czasów na 100 metrów">
+            
+            <div class="chart-row">
+              <span class="row-athlete">Jakub Nowak</span>
+              <div class="row-track">
+                <!-- 10.84s z max 12s = ok. 90.3% szerokości -->
+                <div class="chart-bar bar-leader" style="--bar-width: 90.33%;" aria-label="Jakub Nowak: 10,84 sekundy"></div>
+              </div>
+              <span class="row-value">10,84 s</span>
+            </div>
+
+            <div class="chart-row">
+              <span class="row-athlete">Michał Kowalski</span>
+              <div class="row-track">
+                <!-- 10.96s z max 12s = ok. 91.3% -->
+                <div class="chart-bar" style="--bar-width: 91.33%;" aria-label="Michał Kowalski: 10,96 sekundy"></div>
+              </div>
+              <span class="row-value">10,96 s</span>
+            </div>
+
+            <div class="chart-row">
+              <span class="row-athlete">Adam Wiśniewski</span>
+              <div class="row-track">
+                <!-- 11.08s = 92.3% -->
+                <div class="chart-bar" style="--bar-width: 92.33%;" aria-label="Adam Wiśniewski: 11,08 sekundy"></div>
+              </div>
+              <span class="row-value">11,08 s</span>
+            </div>
+
+            <div class="chart-row">
+              <span class="row-athlete">Kacper Wójcik</span>
+              <div class="row-track">
+                <!-- 11.20s = 93.3% -->
+                <div class="chart-bar" style="--bar-width: 93.33%;" aria-label="Kacper Wójcik: 11,20 sekundy"></div>
+              </div>
+              <span class="row-value">11,20 s</span>
+            </div>
+
+            <div class="chart-row">
+              <span class="row-athlete">Piotr Kamiński</span>
+              <div class="row-track">
+                <!-- 11.32s = 94.3% -->
+                <div class="chart-bar" style="--bar-width: 94.33%;" aria-label="Piotr Kamiński: 11,32 sekundy"></div>
+              </div>
+              <span class="row-value">11,32 s</span>
+            </div>
+
+            <div class="chart-row">
+              <span class="row-athlete">Filip Lewandowski</span>
+              <div class="row-track">
+                <!-- 11.44s = 95.3% -->
+                <div class="chart-bar" style="--bar-width: 95.33%;" aria-label="Filip Lewandowski: 11,44 sekundy"></div>
+              </div>
+              <span class="row-value">11,44 s</span>
+            </div>
+
+            <!-- Podziałka osi X -->
+            <div class="chart-x-axis" aria-hidden="true">
+              <span class="x-tick tick-0">0</span>
+              <span class="x-tick tick-3">3</span>
+              <span class="x-tick tick-6">6</span>
+              <span class="x-tick tick-9">9</span>
+              <span class="x-tick tick-12">12 s</span>
+            </div>
+          </div>
+
+          <!-- Metryki podsumowujące wykresu -->
+          <div class="chart-summary-stats">
+            <div class="summary-metric">
+              <span class="metric-val">10,84 s</span>
+              <span class="metric-label">najlepszy czas</span>
+            </div>
+            <div class="summary-metric">
+              <span class="metric-val">11,14 s</span>
+              <span class="metric-label">średnia</span>
+            </div>
+            <div class="summary-metric">
+              <span class="metric-val">0,60 s</span>
+              <span class="metric-label">rozstęp wyników</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Rankingi i Rekordy Życiowe -->
+        <div class="rankings-block">
+          <header class="rankings-header">
+            <h3 class="rankings-title">Ranking i rekordy życiowe</h3>
+            <p class="rankings-subtitle">Liderzy w swojej konkurencji. RŻ to rekord życiowy zadeklarowany w zgłoszeniu.</p>
+          </header>
+
+          <div class="rankings-grid">
+            
+            <!-- Karta rankingu 100m -->
+            <article class="ranking-card">
+              <div class="ranking-card-top">
+                <div class="ranking-discipline">
+                  <h4 class="discipline-name">100 m</h4>
+                  <span class="discipline-meta">Czas rosnąco • 6 zawodników</span>
+                </div>
+                <div class="discipline-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                </div>
+              </div>
+
+              <ol class="ranking-list">
+                <li class="ranking-item">
+                  <span class="rank-pos pos-1">1</span>
+                  <div class="rank-details">
+                    <span class="rank-name">Jakub Nowak</span>
+                    <span class="rank-club">AZS Warszawa</span>
+                  </div>
+                  <div class="rank-result">
+                    <span class="rank-score">10,84 s</span>
+                    <span class="badge-rz">RŻ</span>
+                  </div>
+                </li>
+                <li class="ranking-item">
+                  <span class="rank-pos pos-2">2</span>
+                  <div class="rank-details">
+                    <span class="rank-name">Michał Kowalski</span>
+                    <span class="rank-club">KS Sprint Kraków</span>
+                  </div>
+                  <div class="rank-result">
+                    <span class="rank-score">10,96 s</span>
+                    <span class="badge-rz">RŻ</span>
+                  </div>
+                </li>
+                <li class="ranking-item">
+                  <span class="rank-pos pos-3">3</span>
+                  <div class="rank-details">
+                    <span class="rank-name">Adam Wiśniewski</span>
+                    <span class="rank-club">WKS Poznań</span>
+                  </div>
+                  <div class="rank-result">
+                    <span class="rank-score">11,08 s</span>
+                  </div>
+                </li>
+              </ol>
+            </article>
+
+            <!-- Karta rankingu Skok w dal -->
+            <article class="ranking-card">
+              <div class="ranking-card-top">
+                <div class="ranking-discipline">
+                  <h4 class="discipline-name">Skok w dal</h4>
+                  <span class="discipline-meta">Odległość malejąco • 6 zawodników</span>
+                </div>
+                <div class="discipline-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="7 17 2 12 7 7"/>
+                    <polyline points="17 7 22 12 17 17"/>
+                    <line x1="2" y1="12" x2="22" y2="12"/>
+                  </svg>
+                </div>
+              </div>
+
+              <ol class="ranking-list">
+                <li class="ranking-item">
+                  <span class="rank-pos pos-1">1</span>
+                  <div class="rank-details">
+                    <span class="rank-name">Antoni Mazur</span>
+                    <span class="rank-club">AZS Warszawa</span>
+                  </div>
+                  <div class="rank-result">
+                    <span class="rank-score">7,42 m</span>
+                    <span class="badge-rz">RŻ</span>
+                  </div>
+                </li>
+                <li class="ranking-item">
+                  <span class="rank-pos pos-2">2</span>
+                  <div class="rank-details">
+                    <span class="rank-name">Wojciech Krawczyk</span>
+                    <span class="rank-club">KS Sprint Kraków</span>
+                  </div>
+                  <div class="rank-result">
+                    <span class="rank-score">7,30 m</span>
+                    <span class="badge-rz">RŻ</span>
+                  </div>
+                </li>
+                <li class="ranking-item">
+                  <span class="rank-pos pos-3">3</span>
+                  <div class="rank-details">
+                    <span class="rank-name">Dawid Piotrowski</span>
+                    <span class="rank-club">WKS Poznań</span>
+                  </div>
+                  <div class="rank-result">
+                    <span class="rank-score">7,18 m</span>
+                  </div>
+                </li>
+              </ol>
+            </article>
+
+          </div>
+
+          <!-- Wyróżnienie lidera 400m -->
+          <div class="leader-highlight-strip">
+            <div class="leader-info">
+              <span class="leader-badge-title">
+                <svg class="trophy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M6 9H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2"/>
+                  <path d="M18 9h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2"/>
+                  <path d="M4 22h16"/>
+                  <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+                  <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+                  <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
+                </svg>
+                Lider 400 m
+              </span>
+              <span class="leader-person">Mateusz Zieliński • WKS Poznań</span>
+            </div>
+            <div class="leader-score-group">
+              <span class="leader-score">48,12 s</span>
+              <span class="badge-rz">RŻ</span>
+            </div>
+          </div>
+
+          <p class="analiza-footer-note">
+            Jak liczymy? Każdy rekord to jeden start. Średnia dotyczy wyłącznie 100 m; rankingi nie łączą konkurencji. Zestawienie obejmuje 18 fikcyjnych wyników z maja 2026.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =========================================================
+         SEKCJA 4: DODAJ WYNIK (FORMULARZ + PODGLĄD)
+         ========================================================= -->
+    <section id="dodaj-wynik" class="app-section section-dodaj">
+      <div class="container">
+        
+        <header class="section-header-block">
+          <h2 class="page-title">Twój start. Nasza wspólna baza.</h2>
+          <p class="page-subtitle">Dodaj wynik zawodów. Precyzyjne dane to lepsze porównania.</p>
+        </header>
+
+        <!-- Baner informacyjny połączenia z bazą SQLite -->
+        <div class="alert alert-info" role="status">
+          <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <polyline points="9 12 11 14 15 10"/>
+          </svg>
+          <span class="alert-text">
+            Baza danych aktywna (SQLite). Wszystkie dodane starty są bezpośrednio zapisywane w bazie i od razu pojawiają się w tabeli wyników.
+          </span>
+        </div>
+
+        <!-- 2-kolumnowy układ formularza z Flexbox / CSS Grid -->
+        <div class="form-layout-grid">
+          
+          <!-- Lewa kolumna: Formularz rejestracji wyniku -->
+          <div class="form-container-card">
+            
+            <div class="form-card-header">
+              <h3 class="form-card-title">Dane zgłoszenia</h3>
+              <span class="required-indicator">* wymagane</span>
+            </div>
+
+            <form id="add-result-form" class="entry-form" novalidate>
+              
+              <!-- Krok 1: Zawodnik -->
+              <fieldset class="form-step">
+                <legend class="step-legend">
+                  <span class="step-num">01</span>
+                  <div class="step-heading-group">
+                    <span class="step-title">Zawodnik</span>
+                    <span class="step-subtitle">Wpisz dane zgodne z protokołem zawodów.</span>
+                  </div>
+                </legend>
+
+                <div class="form-row-grid">
+                  <!-- Imię i nazwisko -->
+                  <div class="form-group" id="group-athlete-name">
+                    <label for="athlete-name" class="form-label">
+                      Imię i nazwisko <span class="req" aria-hidden="true">*</span>
+                    </label>
+                    <input 
+                      type="text" 
+                      id="athlete-name" 
+                      name="athlete_name" 
+                      class="form-control" 
+                      value="Jan Malinowski" 
+                      required 
+                      aria-required="true"
+                      aria-describedby="athlete-name-help"
+                    >
+                    <p id="athlete-name-help" class="form-help">Np. Jan Malinowski — bez skrótów.</p>
+                  </div>
+
+                  <!-- Klub -->
+                  <div class="form-group" id="group-athlete-club">
+                    <label for="athlete-club" class="form-label">
+                      Klub <span class="req" aria-hidden="true">*</span>
+                    </label>
+                    <div class="input-with-validation">
+                      <input 
+                        type="text" 
+                        id="athlete-club" 
+                        name="athlete_club" 
+                        class="form-control" 
+                        placeholder="np. AZS Warszawa" 
+                        required 
+                        aria-required="true"
+                        aria-describedby="athlete-club-error"
+                      >
+                      <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                      </svg>
+                    </div>
+                    <p id="athlete-club-error" class="form-error-msg" style="display: none;">Podaj nazwę klubu lub wpisz „Niezrzeszony”.</p>
+                  </div>
+                </div>
+
+                <div class="form-row-grid">
+                  <!-- Płeć (Radio buttony) -->
+                  <div class="form-group">
+                    <fieldset class="radio-fieldset">
+                      <legend class="form-label">
+                        Płeć <span class="req" aria-hidden="true">*</span>
+                      </legend>
+                      <div class="radio-options-row">
+                        <label class="radio-label">
+                          <input type="radio" name="gender" value="kobiety" class="radio-input">
+                          <span class="radio-custom" aria-hidden="true"></span>
+                          <span class="radio-text">Kobiety</span>
+                        </label>
+                        <label class="radio-label">
+                          <input type="radio" name="gender" value="mezczyzni" class="radio-input" checked>
+                          <span class="radio-custom" aria-hidden="true"></span>
+                          <span class="radio-text">Mężczyźni</span>
+                        </label>
+                      </div>
+                    </fieldset>
+                  </div>
+
+                  <!-- Kategoria wiekowa -->
+                  <div class="form-group">
+                    <label for="age-category" class="form-label">
+                      Kategoria wiekowa <span class="req" aria-hidden="true">*</span>
+                    </label>
+                    <select id="age-category" name="age_category" class="form-control form-select" required aria-required="true">
+                      <option value="open" selected>Open</option>
+                      <option value="u23">U23</option>
+                      <option value="u20">U20</option>
+                      <option value="u18">U18</option>
+                      <option value="masters">Masters</option>
+                    </select>
+                  </div>
+                </div>
+              </fieldset>
+
+              <!-- Krok 2: Start i rezultat -->
+              <fieldset class="form-step">
+                <legend class="step-legend">
+                  <span class="step-num">02</span>
+                  <div class="step-heading-group">
+                    <span class="step-title">Start i rezultat</span>
+                    <span class="step-subtitle">Wyniki biegowe podawaj w sekundach, skoki w metrach.</span>
+                  </div>
+                </legend>
+
+                <div class="form-row-grid">
+                  <!-- Konkurencja -->
+                  <div class="form-group">
+                    <label for="discipline" class="form-label">
+                      Konkurencja <span class="req" aria-hidden="true">*</span>
+                    </label>
+                    <select id="discipline" name="discipline" class="form-control form-select" required aria-required="true">
+                      <option value="100 m" selected>100 m</option>
+                      <option value="400 m">400 m</option>
+                      <option value="Skok w dal">Skok w dal</option>
+                    </select>
+                  </div>
+
+                  <!-- Data zawodów -->
+                  <div class="form-group">
+                    <label for="event-date" class="form-label">
+                      Data zawodów <span class="req" aria-hidden="true">*</span>
+                    </label>
+                    <div class="input-with-icon">
+                      <input 
+                        type="date" 
+                        id="event-date" 
+                        name="event_date" 
+                        class="form-control" 
+                        value="2026-05-24" 
+                        required 
+                        aria-required="true"
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-row-grid">
+                  <!-- Wynik -->
+                  <div class="form-group" id="group-score-result">
+                    <label for="score-result" class="form-label">
+                      Wynik <span class="req" aria-hidden="true">*</span>
+                    </label>
+                    <div class="input-with-unit">
+                      <input 
+                        type="text" 
+                        id="score-result" 
+                        name="score" 
+                        class="form-control text-right" 
+                        value="11,16" 
+                        required 
+                        aria-required="true"
+                        aria-describedby="score-help"
+                      >
+                      <span id="score-unit-badge" class="input-unit-badge">s</span>
+                    </div>
+                    <p id="score-help" class="form-help">Sekundy • 2 miejsca po przecinku, np. 11,16.</p>
+                  </div>
+
+                  <!-- Wiatr (opcjonalnie) -->
+                  <div class="form-group" id="group-wind-val">
+                    <label for="wind-val" class="form-label">Wiatr (opcjonalnie)</label>
+                    <input 
+                      type="text" 
+                      id="wind-val" 
+                      name="wind" 
+                      class="form-control" 
+                      value="+1,2 m/s"
+                      aria-describedby="wind-help"
+                    >
+                    <p id="wind-help" class="form-help">Dla 100 m i skoku w dal, np. +1,2 m/s.</p>
+                  </div>
+                </div>
+
+                <!-- Checkbox Rekord życiowy -->
+                <div class="form-group checkbox-group">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="is-rz-checkbox" name="is_rz" class="checkbox-input" checked>
+                    <span class="checkbox-custom" aria-hidden="true"></span>
+                    <span class="checkbox-content">
+                      <strong class="checkbox-title">To mój rekord życiowy</strong>
+                      <span class="checkbox-desc">Oznaczymy wynik jako RŻ. Deklaracja dotyczy wybranej konkurencji.</span>
+                    </span>
+                  </label>
+                </div>
+              </fieldset>
+
+              <!-- Krok 3: Potwierdzenie -->
+              <fieldset class="form-step">
+                <legend class="step-legend">
+                  <span class="step-num">03</span>
+                  <div class="step-heading-group">
+                    <span class="step-title">Potwierdzenie</span>
+                    <span class="step-subtitle">Przed wysłaniem sprawdź zawodnika, jednostkę i datę.</span>
+                  </div>
+                </legend>
+
+                <div class="checkbox-list">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="confirm-protocol" name="confirm_protocol" class="checkbox-input" checked required aria-required="true">
+                    <span class="checkbox-custom" aria-hidden="true"></span>
+                    <span class="checkbox-content">
+                      <strong class="checkbox-title">Potwierdzam zgodność danych z protokołem zawodów. <span class="req" aria-hidden="true">*</span></strong>
+                    </span>
+                  </label>
+
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="accept-terms" name="accept_terms" class="checkbox-input" checked required aria-required="true">
+                    <span class="checkbox-custom" aria-hidden="true"></span>
+                    <span class="checkbox-content">
+                      <strong class="checkbox-title">Akceptuję regulamin i zasady przetwarzania danych. <span class="req" aria-hidden="true">*</span></strong>
+                      <span class="checkbox-desc">Dane będą widoczne w publicznej bazie po weryfikacji zgłoszenia.</span>
+                    </span>
+                  </label>
+                </div>
+              </fieldset>
+
+              <!-- Komunikaty walidacji i sukcesu -->
+              <div id="form-error-banner" class="alert alert-danger" role="alert" style="display: none;">
+                <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <span class="alert-text" id="form-error-text">Uzupełnij wymagane pola, aby wysłać zgłoszenie.</span>
+              </div>
+
+              <div id="form-success-banner" class="alert alert-success" role="status" style="display: none;">
+                <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                <span class="alert-text" id="form-success-text">Wynik został pomyślnie zapisany w bazie danych!</span>
+              </div>
+
+              <!-- Przyciski akcji formularza -->
+              <div class="form-actions-row">
+                <button type="submit" id="btn-submit-result" class="btn btn-primary">
+                  <span>Wyślij zgłoszenie</span>
+                  <span class="btn-arrow" aria-hidden="true">→</span>
+                </button>
+                <a href="#baza-wynikow" class="btn-cancel">Anuluj i wróć do bazy</a>
+              </div>
+
+            </form>
+          </div>
+
+          <!-- Prawa kolumna: Podgląd na żywo oraz Baza wiedzy -->
+          <aside class="form-sidebar" aria-label="Podgląd zgłoszenia i wskazówki">
+            
+            <!-- Sticky Karta Podglądu Zgłoszenia (Ciemna karta jak w Figmie) -->
+            <article class="live-preview-card">
+              <header class="preview-card-header">
+                <span class="preview-tag">PODGLĄD ZGŁOSZENIA</span>
+                <button type="button" class="preview-expand-btn" aria-label="Rozwiń podgląd" title="Rozwiń">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <polyline points="15 3 21 3 21 9"/>
+                    <polyline points="9 21 3 21 3 15"/>
+                    <line x1="21" y1="3" x2="14" y2="10"/>
+                    <line x1="3" y1="21" x2="10" y2="14"/>
+                  </svg>
+                </button>
+              </header>
+
+              <div class="preview-card-body">
+                <h4 id="preview-athlete-name" class="preview-athlete-name">Jan Malinowski</h4>
+                <p id="preview-category" class="preview-category">100 m • mężczyźni open</p>
+
+                <div class="preview-result-row">
+                  <span id="preview-score-val" class="preview-score-val">11,16</span>
+                  <span id="preview-unit" class="preview-unit">s</span>
+                  <span id="preview-badge-rz" class="badge-rz">RŻ</span>
+                </div>
+
+                <dl class="preview-details-list">
+                  <div class="preview-detail-item">
+                    <dt>Data</dt>
+                    <dd id="preview-date-val">24.05.2026</dd>
+                  </div>
+                  <div class="preview-detail-item">
+                    <dt>Klub</dt>
+                    <dd id="preview-club-val" class="text-placeholder">Do uzupełnienia</dd>
+                  </div>
+                  <div class="preview-detail-item">
+                    <dt>Wiatr</dt>
+                    <dd id="preview-wind-val">+1,2 m/s</dd>
+                  </div>
+                </dl>
+              </div>
+
+              <footer class="preview-card-footer">
+                <span>Podgląd roboczy • zgłoszenie nie zostało wysłane.</span>
+              </footer>
+            </article>
+
+            <!-- Karta Dobrze wiedzieć -->
+            <article class="guide-card">
+              <h4 class="guide-card-title">Dobrze wiedzieć</h4>
+              
+              <ul class="guide-list">
+                <li class="guide-item">
+                  <div class="guide-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <circle cx="12" cy="12" r="10"/>
+                      <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                  </div>
+                  <div class="guide-content">
+                    <strong class="guide-heading">Właściwa jednostka</strong>
+                    <p class="guide-text">100 m i 400 m: sekundy. Skok w dal: metry. Nie wpisuj jednostki w pole wyniku.</p>
+                  </div>
+                </li>
+
+                <li class="guide-item">
+                  <div class="guide-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                      <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                  </div>
+                  <div class="guide-content">
+                    <strong class="guide-heading">Co oznacza RŻ?</strong>
+                    <p class="guide-text">Twój zadeklarowany rekord życiowy w danej konkurencji, a nie rekord całej bazy.</p>
+                  </div>
+                </li>
+
+                <li class="guide-item">
+                  <div class="guide-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                      <line x1="16" y1="13" x2="8" y2="13"/>
+                      <line x1="16" y1="17" x2="8" y2="17"/>
+                      <polyline points="10 9 9 9 8 9"/>
+                    </svg>
+                  </div>
+                  <div class="guide-content">
+                    <strong class="guide-heading">Co dzieje się dalej?</strong>
+                    <p class="guide-text">W docelowej aplikacji zgłoszenie przejdzie weryfikację przed publikacją.</p>
+                  </div>
+                </li>
+              </ul>
+
+              <div class="guide-footer">
+                <a href="#o-projekcie" class="guide-link">
+                  <span>Zasady dodawania wyników</span>
+                  <span aria-hidden="true">↗</span>
+                </a>
+              </div>
+            </article>
+
+          </aside>
+
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- =========================================================
+       STOPKA APLIKACJI
+       ========================================================= -->
+  <footer class="app-footer">
+    <div class="container footer-inner">
+      <div class="footer-left">
+        <span class="footer-brand">bieżnia / sezon 2026</span>
+        <p class="footer-disclaimer">
+          Dane demonstracyjne. Zawodnicy, kluby i wyniki są fikcyjne; nie stanowią oficjalnych rekordów.
+        </p>
+      </div>
+      <div class="footer-right">
+        <a href="#o-projekcie" class="footer-link">
+          <span>Zasady i kontakt</span>
+          <span aria-hidden="true">↗</span>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Główny skrypt aplikacji obsługujący bazę danych, filtry i formularz -->
+  <script src="app.js"></script>
+</body>
+</html>
