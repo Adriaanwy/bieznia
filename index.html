@@ -8,7 +8,32 @@
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Wczesne wczytanie motywu i personalizacji (zapobiega efektowi mignięcia tła - FOUC) -->
+  <script>
+    (function() {
+      try {
+        const theme = localStorage.getItem('bieznia_theme') || 'light';
+        const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+
+        const fontWeight = localStorage.getItem('bieznia_font_weight') || 'normal';
+        if (fontWeight === 'bold') {
+          document.documentElement.setAttribute('data-font-weight', 'bold');
+        }
+
+        const fontSize = localStorage.getItem('bieznia_font_size') || 'normal';
+        if (fontSize && fontSize !== 'normal') {
+          document.documentElement.setAttribute('data-font-size', fontSize);
+        }
+
+        const accent = localStorage.getItem('bieznia_accent') || 'blue';
+        if (accent && accent !== 'blue') {
+          document.documentElement.setAttribute('data-accent', accent);
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
 
@@ -78,9 +103,208 @@
         </ul>
       </nav>
 
+      <!-- Akcje nagłówka: Szybki motyw + Przycisk Personalizacji -->
+      <div class="header-actions">
+        <!-- Szybki przycisk przełączania motywu (Ciemny / Jasny) -->
+        <button type="button" id="btn-theme-quick-toggle" class="header-action-btn btn-theme-toggle" title="Przełącz motyw (Ciemny / Jasny)" aria-label="Przełącz motyw ciemny lub jasny">
+          <!-- Ikona księżyca (gdy motyw jasny) -->
+          <svg class="theme-icon icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+          <!-- Ikona słońca (gdy motyw ciemny) -->
+          <svg class="theme-icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+        </button>
+
+        <!-- Przycisk pełnej personalizacji -->
+        <button type="button" id="btn-customization-toggle" class="header-action-btn btn-customization" title="Personalizuj wygląd strony" aria-label="Otwórz panel personalizacji" aria-expanded="false" aria-controls="customization-panel">
+          <svg class="btn-icon-customization" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="6" cy="6" r="3"></circle>
+            <circle cx="6" cy="18" r="3"></circle>
+            <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
+            <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
+            <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
+          </svg>
+          <span class="customization-text">Personalizacja</span>
+        </button>
+
+        <!-- Pływający Panel Personalizacji -->
+        <div id="customization-panel" class="customization-panel" role="dialog" aria-labelledby="customization-title" aria-hidden="true">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <svg class="panel-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10"></path>
+                <circle cx="12" cy="12" r="4"></circle>
+              </svg>
+              <div>
+                <h3 id="customization-title" class="panel-title">Personalizacja wyglądu</h3>
+                <p class="panel-subtitle">Dostosuj aplikację do swoich preferencji</p>
+              </div>
+            </div>
+            <button type="button" id="btn-close-customization" class="btn-panel-close" aria-label="Zamknij panel personalizacji">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+
+          <div class="panel-body">
+            <!-- 1. Motyw strony -->
+            <div class="setting-group">
+              <div class="setting-label">
+                <span class="setting-name">Motyw kolorystyczny</span>
+                <span class="setting-hint">Jasny, ciemny lub systemowy</span>
+              </div>
+              <div class="theme-options-grid" role="radiogroup" aria-label="Wybór motywu">
+                <button type="button" class="theme-option-btn" data-theme-val="light" role="radio" aria-checked="false">
+                  <svg class="option-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                  </svg>
+                  <span>Jasny</span>
+                </button>
+                <button type="button" class="theme-option-btn" data-theme-val="dark" role="radio" aria-checked="false">
+                  <svg class="option-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                  </svg>
+                  <span>Ciemny</span>
+                </button>
+                <button type="button" class="theme-option-btn" data-theme-val="system" role="radio" aria-checked="false">
+                  <svg class="option-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                  </svg>
+                  <span>Auto</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 2. Grubość czcionki -->
+            <div class="setting-group">
+              <div class="setting-label">
+                <span class="setting-name">Grubość czcionki</span>
+                <span class="setting-hint">Lepsza czytelność i wyrazisty tekst</span>
+              </div>
+              <div class="segmented-control" role="radiogroup" aria-label="Grubość czcionki">
+                <button type="button" class="segment-btn active" data-font-weight-val="normal" role="radio" aria-checked="true">
+                  <span class="fw-sample sample-normal">Aa</span>
+                  <span>Standardowa</span>
+                </button>
+                <button type="button" class="segment-btn" data-font-weight-val="bold" role="radio" aria-checked="false">
+                  <span class="fw-sample sample-bold">Aa</span>
+                  <span>Pogrubiona</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 3. Rozmiar tekstu -->
+            <div class="setting-group">
+              <div class="setting-label">
+                <span class="setting-name">Rozmiar tekstu</span>
+                <span class="setting-hint">Skalowanie interfejsu (proporcjonalne)</span>
+              </div>
+              <div class="font-size-group" role="radiogroup" aria-label="Rozmiar tekstu">
+                <button type="button" class="font-size-btn active" data-font-size-val="normal" role="radio" aria-checked="true" title="Standardowy (100%)">
+                  <span class="fs-preview fs-sm">A</span>
+                  <span class="fs-text">Domyślny</span>
+                </button>
+                <button type="button" class="font-size-btn" data-font-size-val="medium" role="radio" aria-checked="false" title="Powiększony (110%)">
+                  <span class="fs-preview fs-md">A+</span>
+                  <span class="fs-text">Średni</span>
+                </button>
+                <button type="button" class="font-size-btn" data-font-size-val="large" role="radio" aria-checked="false" title="Duży (120%)">
+                  <span class="fs-preview fs-lg">A++</span>
+                  <span class="fs-text">Duży</span>
+                </button>
+              </div>
+
+              <!-- Płynny suwak regulacji rozmiaru czcionki -->
+              <div class="slider-wrapper">
+                <input 
+                  type="range" 
+                  id="font-size-slider" 
+                  class="font-range-slider" 
+                  min="1" 
+                  max="3" 
+                  value="1" 
+                  step="1"
+                  aria-label="Suwak regulacji rozmiaru czcionki"
+                >
+                <div class="slider-marks" aria-hidden="true">
+                  <span class="mark-label">100% (Domyślny)</span>
+                  <span class="mark-label">110% (Średni)</span>
+                  <span class="mark-label">120% (Duży)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. Kolor akcentu -->
+            <div class="setting-group">
+              <div class="setting-label">
+                <span class="setting-name">Kolor akcentu</span>
+                <span class="setting-hint">Główny motyw przewodni elementów</span>
+              </div>
+              <div class="accent-colors-grid" role="radiogroup" aria-label="Kolor akcentu">
+                <button type="button" class="accent-chip active" data-accent-val="blue" role="radio" aria-checked="true" title="Klasyczny Błękit (Domyślny)">
+                  <span class="color-dot" style="background-color: #2563eb;"></span>
+                  <span>Błękit</span>
+                </button>
+                <button type="button" class="accent-chip" data-accent-val="emerald" role="radio" aria-checked="false" title="Szmaragd Stadionu">
+                  <span class="color-dot" style="background-color: #059669;"></span>
+                  <span>Szmaragd</span>
+                </button>
+                <button type="button" class="accent-chip" data-accent-val="orange" role="radio" aria-checked="false" title="Sprint Tartan">
+                  <span class="color-dot" style="background-color: #ea580c;"></span>
+                  <span>Sprint</span>
+                </button>
+                <button type="button" class="accent-chip" data-accent-val="violet" role="radio" aria-checked="false" title="Królewski Fiolet">
+                  <span class="color-dot" style="background-color: #7c3aed;"></span>
+                  <span>Fiolet</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-footer">
+            <button type="button" id="btn-reset-customization" class="btn-reset-settings" title="Przywróć wszystkie domyślne ustawienia">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="1 4 1 10 7 10"></polyline>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+              </svg>
+              <span>Przywróć domyślne</span>
+            </button>
+            <span class="panel-storage-note">Zapamiętano w przeglądarce</span>
+          </div>
+        </div>
+      </div>
 
     </div>
   </header>
+
+  <!-- Dyskretne powiadomienie Toast o zmianach kosmetycznych -->
+  <div id="app-toast" class="app-toast" role="status" aria-live="polite" aria-atomic="true">
+    <div class="toast-content">
+      <span id="toast-icon" class="toast-icon">✓</span>
+      <span id="toast-message" class="toast-message">Ustawienia zaktualizowane</span>
+    </div>
+  </div>
 
   <!-- Mobilna nawigacja dolna (dla smartfonów) -->
   <nav class="mobile-bottom-nav" aria-label="Nawigacja mobilna">
@@ -397,7 +621,7 @@
             <p class="page-subtitle">Wyszukuj starty i porównuj wyniki w obrębie konkurencji.</p>
           </div>
           <div class="header-action">
-            <button type="button" class="btn btn-outline" aria-label="Eksportuj wyniki do pliku CSV">
+            <button type="button" id="btn-export-csv" class="btn btn-outline" aria-label="Eksportuj wyniki do pliku CSV">
               <span>Eksport CSV</span>
               <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -620,7 +844,7 @@
               <p class="chart-subtitle">24.05.2026 • mężczyźni open • czas w sekundach</p>
             </div>
             <div class="chart-controls">
-              <select class="form-control form-select chart-select" aria-label="Wybierz konkurencję do wykresu">
+              <select id="chart-discipline-select" class="form-control form-select chart-select" aria-label="Wybierz konkurencję do wykresu">
                 <option value="100m">100 m</option>
                 <option value="400m">400 m</option>
                 <option value="skok">Skok w dal</option>

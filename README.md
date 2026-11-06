@@ -34,6 +34,15 @@ Wymagania: Zainstalowany **Python 3** (wersja 3.8+). Projekt nie wymaga instalow
   - Data malejąco / Data rosnąco
   - Wynik rosnąco (najszybszy bieg na górze) / Wynik malejąco (najdłuższy skok na górze)
 - **Dodawanie wyników z walidacją**: Formularz zgłoszenia nowego wyniku z podglądem karty na żywo (`Live Preview`) i bezpośrednim zapisem do bazy SQLite.
+- **Eksport do CSV**: Pobieranie aktualnie przefiltrowanych rekordów do pliku `.csv` ze znacznikiem UTF-8 BOM (pełna zgodność z polskimi znakami w Excelu i Google Sheets).
+- **Interaktywny wykres CSS Grid / Flexbox**: Możliwość przełączania konkurencji (100 m, 400 m, Skok w dal) z automatycznym przeliczaniem skali, średnich i rozstępu.
+- **Zaawansowana Personalizacja Wyglądu i Dostępność**:
+  - 🌗 **Tryb Ciemny / Jasny (Dark Mode)**: Szybki przełącznik 1-klik w nagłówku oraz pełny wybór (Jasny / Ciemny / Automatyczny wg preferencji systemu operacyjnego).
+  - 🔠 **Pogrubienie czcionki (Wysoka czytelność)**: Możliwość zwiększenia wagi fontu dla wyrazistego, kontrastowego tekstu.
+  - 🔍 **Skalowanie rozmiaru tekstu**: Trzystopniowa regulacja wielkości czcionki (Domyślny 100%, Średni 110%, Duży 120%) bez rozbijania układu.
+  - 🎨 **Akcenty kolorystyczne**: 4 sportowe palety przewodnie (Błękit lekkoatletyczny, Szmaragd murawy, Sprint tartanowy, Królewski fiolet).
+  - 💾 **Trwałość ustawień (`localStorage`)**: Pamięć wyborów użytkownika z natychmiastowym wczytaniem (ochrona przed efektem FOUC).
+  - 🔔 **Powiadomienia Toast**: Elegancki dymek informujący o zastosowaniu wprowadzonych zmian.
 - **100% Czysty CSS3**: Brak frameworków typu Bootstrap czy Tailwind – układ oparty na CSS Grid i Flexbox z pełną responsywnością (desktop, tablet, mobile).
 
 ---
