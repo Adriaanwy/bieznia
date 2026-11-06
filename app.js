@@ -53,6 +53,54 @@ document.addEventListener('DOMContentLoaded', () => {
   const previewClubVal = document.getElementById('preview-club-val');
   const previewWindVal = document.getElementById('preview-wind-val');
 
+  // Elementy DOM - Moduł Bezpieczeństwa i Uwierzytelniania
+  const btnOpenLogin = document.getElementById('btn-open-login');
+  const userBadge = document.getElementById('user-badge');
+  const userNameDisplay = document.getElementById('user-name-display');
+  const userRoleDisplay = document.getElementById('user-role-display');
+  const userAvatarInitials = document.getElementById('user-avatar-initials');
+  const btnLogout = document.getElementById('btn-logout');
+  const btnOpenAudit = document.getElementById('btn-open-audit');
+  const colAdminHeader = document.getElementById('col-admin-header');
+
+  const authModal = document.getElementById('auth-modal');
+  const authModalBackdrop = document.getElementById('auth-modal-backdrop');
+  const authModalClose = document.getElementById('auth-modal-close');
+  const authModalAlert = document.getElementById('auth-modal-alert');
+  const tabBtnLogin = document.getElementById('tab-btn-login');
+  const tabBtnRegister = document.getElementById('tab-btn-register');
+  const authPanelLogin = document.getElementById('auth-panel-login');
+  const authPanelRegister = document.getElementById('auth-panel-register');
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
+  const demoButtons = document.querySelectorAll('.btn-demo-pill');
+
+  const addResultAuthBarrier = document.getElementById('add-result-auth-barrier');
+  const addResultAuthSuccess = document.getElementById('add-result-auth-success');
+  const btnBarrierLogin = document.getElementById('btn-barrier-login');
+  const judgeNameLabel = document.getElementById('judge-name-label');
+  const judgeRoleLabel = document.getElementById('judge-role-label');
+  const formLayoutGrid = document.querySelector('.form-layout-grid');
+
+  const auditModal = document.getElementById('audit-modal');
+  const auditModalBackdrop = document.getElementById('audit-modal-backdrop');
+  const auditModalClose = document.getElementById('audit-modal-close');
+  const btnRefreshAudit = document.getElementById('btn-refresh-audit');
+  const auditTbody = document.getElementById('audit-tbody');
+
+  // Dane kont demonstracyjnych dla natychmiastowej ewaluacji akademickiej
+  const DEMO_CREDENTIALS = {
+    sedzia: { login: 'sedzia', password: 'Sedzia2026!#' },
+    admin: { login: 'admin', password: 'Admin2026!#' },
+    kibic: { login: 'kibic', password: 'Kibic2026!#' }
+  };
+
+  // Stan uwierzytelnienia
+  let currentUser = {
+    authenticated: false,
+    user: null
+  };
+
   // ==========================================================================
   // 1. POBIERANIE I RENDEROWANIE WYNIKÓW Z BAZY DANYCH
   // ==========================================================================
@@ -114,9 +162,14 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    const isAdmin = currentUser && currentUser.authenticated && currentUser.user && currentUser.user.role === 'admin';
+
     resultsTbody.innerHTML = results.map(row => {
       const rzBadgeHtml = row.is_rz 
         ? '<span class="badge-rz">RŻ</span>' 
+        : '';
+      const adminColHtml = isAdmin
+        ? `<td style="text-align: right;"><button type="button" class="btn-delete-row" data-id="${row.id}" data-athlete="${escapeHtml(row.athlete_name)}" title="Usuń rekord z bazy (Admin)">Usuń</button></td>`
         : '';
 
       return `
@@ -129,6 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <td class="cell-result">${escapeHtml(row.score_formatted)}</td>
           <td>${escapeHtml(row.athlete_club)}</td>
           <td class="cell-date">${escapeHtml(row.event_date_formatted || row.event_date)}</td>
+          ${adminColHtml}
         </tr>
       `;
     }).join('');
@@ -462,9 +516,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const response = await fetch(`${API_BASE}/api/wyniki`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          credentials: 'same-origin',
+          headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify(payload)
         });
 
@@ -1073,7 +1126,517 @@ document.addEventListener('DOMContentLoaded', () => {
   applyAccent(initialAccent, false);
 
   // ==========================================================================
-  // 9. INICJALNE POBRANIE DANYCH Z BAZY
+  // 9. MODUŁ BEZPIECZEŃSTWA: UWIERZYTELNIANIE, SESJE, RBAC I DZIENNIK AUDYTU
+  // Zaimplementowany na przedmiot "Bezpieczeństwo i ochrona danych".
   // ==========================================================================
+
+  /**
+   * Zwraca nagłówki z opcjonalnym tokenem Bearer i zabezpieczeniem CSRF
+   */
+  function getAuthHeaders(extra = {}) {
+    const headers = {
+      'X-Requested-With': 'XMLHttpRequest',
+      ...extra
+    };
+    const token = sessionStorage.getItem('bieznia_session_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
+  }
+
+  /**
+   * Sprawdza aktualny stan sesji użytkownika w oparciu o ciasteczko sesyjne lub token
+   */
+  async function checkAuthStatus() {
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/me`, {
+        credentials: 'same-origin',
+        headers: getAuthHeaders()
+      });
+      if (res.ok) {
+        const data = await res.json();
+        currentUser = data;
+      }
+    } catch (e) {
+      console.warn('Nie udało się sprawdzić stanu uwierzytelnienia:', e);
+    }
+    updateAuthUI();
+  }
+
+  /**
+   * Aktualizuje interfejs użytkownika w zależności od stanu sesji i roli (RBAC)
+   */
+  function updateAuthUI() {
+    const isAuth = currentUser && currentUser.authenticated && currentUser.user;
+    const role = isAuth ? currentUser.user.role : null;
+    const isAdmin = role === 'admin';
+    const isJudge = role === 'sedzia' || isAdmin;
+
+    // 1. Pasek nagłówka (Przycisk Zaloguj vs Badge użytkownika)
+    if (btnOpenLogin && userBadge) {
+      if (isAuth) {
+        btnOpenLogin.style.display = 'none';
+        userBadge.style.display = 'inline-flex';
+        if (userNameDisplay) userNameDisplay.textContent = currentUser.user.username;
+        if (userRoleDisplay) {
+          const roleMap = {
+            sedzia: 'Sędzia PZLA',
+            admin: 'Administrator',
+            uzytkownik: 'Kibic / Odczyt',
+            zawodnik: 'Zawodnik'
+          };
+          userRoleDisplay.textContent = roleMap[role] || role;
+        }
+        if (userAvatarInitials) {
+          userAvatarInitials.textContent = (currentUser.user.username[0] || 'U').toUpperCase();
+        }
+        if (btnOpenAudit) {
+          btnOpenAudit.style.display = isAdmin ? 'inline-flex' : 'none';
+        }
+      } else {
+        btnOpenLogin.style.display = 'inline-flex';
+        userBadge.style.display = 'none';
+        if (btnOpenAudit) btnOpenAudit.style.display = 'none';
+      }
+    }
+
+    // 2. Kolumna akcji administratora w tabeli wyników
+    if (colAdminHeader) {
+      colAdminHeader.style.display = isAdmin ? 'table-cell' : 'none';
+    }
+
+    // 3. Kontrola dostępu do formularza dodawania wyników (RBAC)
+    if (addResultAuthBarrier && addResultAuthSuccess && formLayoutGrid) {
+      if (isJudge) {
+        addResultAuthBarrier.style.display = 'none';
+        addResultAuthSuccess.style.display = 'flex';
+        formLayoutGrid.classList.remove('form-locked');
+        if (judgeNameLabel) judgeNameLabel.textContent = currentUser.user.username;
+        if (judgeRoleLabel) judgeRoleLabel.textContent = isAdmin ? 'Administrator' : 'Sędzia PZLA';
+      } else {
+        addResultAuthBarrier.style.display = 'flex';
+        addResultAuthSuccess.style.display = 'none';
+        formLayoutGrid.classList.add('form-locked');
+      }
+    }
+
+    // Przerenderuj tabelę jeśli mamy już wyniki w pamięci podręcznej stanu
+    if (state.results && state.results.length > 0) {
+      renderTable(state.results);
+    }
+  }
+
+  /**
+   * Otwiera modal uwierzytelniania
+   */
+  function openAuthModal(tab = 'login', prefillRole = null) {
+    if (!authModal) return;
+    authModal.style.display = 'flex';
+    authModal.setAttribute('aria-hidden', 'false');
+    if (authModalAlert) {
+      authModalAlert.style.display = 'none';
+      authModalAlert.textContent = '';
+    }
+
+    switchAuthTab(tab);
+
+    if (prefillRole && DEMO_CREDENTIALS[prefillRole]) {
+      const demo = DEMO_CREDENTIALS[prefillRole];
+      const loginInput = document.getElementById('login-identifier');
+      const passInput = document.getElementById('login-password');
+      if (loginInput) loginInput.value = demo.login;
+      if (passInput) passInput.value = demo.password;
+    }
+  }
+
+  /**
+   * Zamyka modal uwierzytelniania
+   */
+  function closeAuthModal() {
+    if (!authModal) return;
+    authModal.style.display = 'none';
+    authModal.setAttribute('aria-hidden', 'true');
+    if (authModalAlert) authModalAlert.style.display = 'none';
+  }
+
+  /**
+   * Przełącza zakładki Logowanie / Rejestracja
+   */
+  function switchAuthTab(tabName) {
+    if (tabName === 'login') {
+      if (tabBtnLogin) tabBtnLogin.classList.add('active');
+      if (tabBtnRegister) tabBtnRegister.classList.remove('active');
+      if (authPanelLogin) authPanelLogin.style.display = 'block';
+      if (authPanelRegister) authPanelRegister.style.display = 'none';
+    } else {
+      if (tabBtnRegister) tabBtnRegister.classList.add('active');
+      if (tabBtnLogin) tabBtnLogin.classList.remove('active');
+      if (authPanelRegister) authPanelRegister.style.display = 'block';
+      if (authPanelLogin) authPanelLogin.style.display = 'none';
+    }
+    if (authModalAlert) authModalAlert.style.display = 'none';
+  }
+
+  /**
+   * Wyświetla alert statusu w modalu uwierzytelniania
+   */
+  function showAuthAlert(type, msg) {
+    if (!authModalAlert) return;
+    authModalAlert.className = `auth-alert alert-${type}`;
+    authModalAlert.textContent = msg;
+    authModalAlert.style.display = 'block';
+  }
+
+  /**
+   * Dynamiczny wskaźnik siły hasła zgodnie z wytycznymi OWASP
+   */
+  function updatePasswordStrengthMeter(password) {
+    const fillEl = document.getElementById('pw-strength-fill');
+    const labelEl = document.getElementById('pw-strength-label');
+    const ruleLen = document.getElementById('pw-rule-len');
+    const ruleUpper = document.getElementById('pw-rule-upper');
+    const ruleNum = document.getElementById('pw-rule-num');
+    const ruleSpec = document.getElementById('pw-rule-spec');
+
+    const hasLen = password.length >= 8;
+    const hasUpper = /[A-Z]/.test(password);
+    const hasNum = /[0-9]/.test(password);
+    const hasSpec = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(password);
+
+    if (ruleLen) ruleLen.classList.toggle('valid', hasLen);
+    if (ruleUpper) ruleUpper.classList.toggle('valid', hasUpper);
+    if (ruleNum) ruleNum.classList.toggle('valid', hasNum);
+    if (ruleSpec) ruleSpec.classList.toggle('valid', hasSpec);
+
+    const score = (hasLen ? 1 : 0) + (hasUpper ? 1 : 0) + (hasNum ? 1 : 0) + (hasSpec ? 1 : 0);
+
+    if (!fillEl || !labelEl) return;
+    fillEl.className = 'pw-strength-fill';
+
+    if (password.length === 0) {
+      fillEl.style.width = '0%';
+      labelEl.textContent = 'Wpisz hasło';
+      labelEl.style.color = 'var(--color-text-muted)';
+    } else if (score === 1) {
+      fillEl.classList.add('weak');
+      labelEl.textContent = 'Bardzo słabe';
+      labelEl.style.color = '#ef4444';
+    } else if (score === 2) {
+      fillEl.classList.add('fair');
+      labelEl.textContent = 'Średnie';
+      labelEl.style.color = '#f59e0b';
+    } else if (score === 3) {
+      fillEl.classList.add('good');
+      labelEl.textContent = 'Dobre';
+      labelEl.style.color = '#3b82f6';
+    } else if (score === 4) {
+      fillEl.classList.add('strong');
+      labelEl.textContent = 'Silne (OWASP ✓)';
+      labelEl.style.color = '#10b981';
+    }
+  }
+
+  // Event Listenery Modala Uwierzytelniania
+  if (btnOpenLogin) {
+    btnOpenLogin.addEventListener('click', () => openAuthModal('login'));
+  }
+  if (btnBarrierLogin) {
+    btnBarrierLogin.addEventListener('click', () => openAuthModal('login', 'sedzia'));
+  }
+  if (authModalClose) {
+    authModalClose.addEventListener('click', closeAuthModal);
+  }
+  if (authModalBackdrop) {
+    authModalBackdrop.addEventListener('click', closeAuthModal);
+  }
+  if (tabBtnLogin) {
+    tabBtnLogin.addEventListener('click', () => switchAuthTab('login'));
+  }
+  if (tabBtnRegister) {
+    tabBtnRegister.addEventListener('click', () => switchAuthTab('register'));
+  }
+
+  // Przyciski szybkiego logowania demo (ułatwienie oceny zadania)
+  demoButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const demoRole = btn.getAttribute('data-demo');
+      const demo = DEMO_CREDENTIALS[demoRole];
+      if (!demo) return;
+
+      switchAuthTab('login');
+      const loginInput = document.getElementById('login-identifier');
+      const passInput = document.getElementById('login-password');
+      if (loginInput) loginInput.value = demo.login;
+      if (passInput) passInput.value = demo.password;
+
+      if (loginForm) {
+        loginForm.requestSubmit();
+      }
+    });
+  });
+
+  // Przełączniki widoczności hasła (Pokaż / Ukryj)
+  document.querySelectorAll('.btn-toggle-pw').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.getAttribute('data-target');
+      const input = document.getElementById(targetId);
+      if (!input) return;
+      const isPw = input.type === 'password';
+      input.type = isPw ? 'text' : 'password';
+      btn.style.color = isPw ? 'var(--color-primary)' : 'var(--color-text-muted)';
+    });
+  });
+
+  // Analiza siły hasła przy wpisywaniu
+  const regPasswordInput = document.getElementById('reg-password');
+  if (regPasswordInput) {
+    regPasswordInput.addEventListener('input', (e) => {
+      updatePasswordStrengthMeter(e.target.value);
+    });
+  }
+
+  // Obsługa wysłania formularza logowania
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const login = (document.getElementById('login-identifier')?.value || '').trim();
+      const password = document.getElementById('login-password')?.value || '';
+
+      if (!login || !password) {
+        showAuthAlert('error', 'Wpisz login oraz hasło.');
+        return;
+      }
+
+      const submitBtn = document.getElementById('btn-submit-login');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>Weryfikacja tożsamości (PBKDF2)...</span>';
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify({ login, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          if (data.session_token) {
+            sessionStorage.setItem('bieznia_session_token', data.session_token);
+          }
+          currentUser = {
+            authenticated: true,
+            user: data.user
+          };
+          updateAuthUI();
+          closeAuthModal();
+          showNotificationToast(`Zalogowano pomyślnie jako ${data.user.username} (${data.user.role})`);
+        } else {
+          let errText = data.error || 'Błąd logowania.';
+          if (data.attempts_left !== undefined) {
+            errText += ` Pozostało prób przed blokadą: ${data.attempts_left}.`;
+          }
+          showAuthAlert('error', errText);
+        }
+      } catch (err) {
+        showAuthAlert('error', 'Błąd połączenia z serwerem uwierzytelniania.');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>Zaloguj się</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+        }
+      }
+    });
+  }
+
+  // Obsługa wysłania formularza rejestracji
+  if (registerForm) {
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = (document.getElementById('reg-username')?.value || '').trim();
+      const email = (document.getElementById('reg-email')?.value || '').trim();
+      const role = document.getElementById('reg-role')?.value || 'uzytkownik';
+      const password = document.getElementById('reg-password')?.value || '';
+
+      const submitBtn = document.getElementById('btn-submit-register');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>Generowanie soli i haszowanie...</span>';
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/register`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify({ username, email, password, role })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          if (data.session_token) {
+            sessionStorage.setItem('bieznia_session_token', data.session_token);
+          }
+          currentUser = {
+            authenticated: true,
+            user: data.user
+          };
+          updateAuthUI();
+          closeAuthModal();
+          showNotificationToast(`Konto ${data.user.username} zostało pomyślnie utworzone!`);
+        } else {
+          showAuthAlert('error', data.error || 'Nie udało się utworzyć konta.');
+        }
+      } catch (err) {
+        showAuthAlert('error', 'Błąd połączenia z serwerem.');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>Utwórz bezpieczne konto</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+        }
+      }
+    });
+  }
+
+  // Obsługa wylogowania
+  if (btnLogout) {
+    btnLogout.addEventListener('click', async () => {
+      try {
+        await fetch(`${API_BASE}/api/auth/logout`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          credentials: 'same-origin'
+        });
+      } catch (e) {}
+
+      sessionStorage.removeItem('bieznia_session_token');
+      currentUser = { authenticated: false, user: null };
+      updateAuthUI();
+      showNotificationToast('Wylogowano pomyślnie. Sesja została unieważniona.');
+    });
+  }
+
+  // Dziennik Audytu Bezpieczeństwa (Tylko Administrator)
+  if (btnOpenAudit) {
+    btnOpenAudit.addEventListener('click', openAuditModal);
+  }
+  if (auditModalClose) {
+    auditModalClose.addEventListener('click', closeAuditModal);
+  }
+  if (auditModalBackdrop) {
+    auditModalBackdrop.addEventListener('click', closeAuditModal);
+  }
+  if (btnRefreshAudit) {
+    btnRefreshAudit.addEventListener('click', loadAuditLogs);
+  }
+
+  function openAuditModal() {
+    if (!auditModal) return;
+    auditModal.style.display = 'flex';
+    auditModal.setAttribute('aria-hidden', 'false');
+    loadAuditLogs();
+  }
+
+  function closeAuditModal() {
+    if (!auditModal) return;
+    auditModal.style.display = 'none';
+    auditModal.setAttribute('aria-hidden', 'true');
+  }
+
+  async function loadAuditLogs() {
+    if (!auditTbody) return;
+    auditTbody.innerHTML = '<tr><td colspan="6" class="audit-loading">Odpytywanie bazy SQLite (tabela audit_logs)...</td></tr>';
+
+    try {
+      const res = await fetch(`${API_BASE}/api/audit-logs`, {
+        credentials: 'same-origin',
+        headers: getAuthHeaders()
+      });
+
+      if (!res.ok) {
+        auditTbody.innerHTML = '<tr><td colspan="6" style="color: var(--color-error); text-align: center; padding: 1.5rem;">Brak uprawnień lub błąd odczytu dziennika audytu.</td></tr>';
+        return;
+      }
+
+      const logs = await res.json();
+      if (logs.length === 0) {
+        auditTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 1.5rem; color: var(--color-text-muted);">Dziennik audytu jest pusty.</td></tr>';
+        return;
+      }
+
+      const getBadgeClass = (eventType) => {
+        if (eventType === 'LOGIN_SUCCESS' || eventType === 'REGISTER_SUCCESS' || eventType === 'RESULT_ADDED') return 'badge-audit-success';
+        if (eventType === 'LOGIN_FAILED' || eventType === 'REGISTER_CONFLICT') return 'badge-audit-failed';
+        if (eventType === 'ACCOUNT_LOCKED' || eventType === 'LOGIN_LOCKED_ATTEMPT') return 'badge-audit-locked';
+        return 'badge-audit-denied';
+      };
+
+      auditTbody.innerHTML = logs.map(l => `
+        <tr>
+          <td>#${l.id}</td>
+          <td style="white-space: nowrap;">${escapeHtml(l.created_at)}</td>
+          <td><span class="audit-badge ${getBadgeClass(l.event_type)}">${escapeHtml(l.event_type)}</span></td>
+          <td><strong>${escapeHtml(l.username || '—')}</strong></td>
+          <td><code>${escapeHtml(l.ip_address || '—')}</code></td>
+          <td style="color: var(--color-text-muted);">${escapeHtml(l.details || '—')}</td>
+        </tr>
+      `).join('');
+    } catch (err) {
+      auditTbody.innerHTML = '<tr><td colspan="6" style="color: var(--color-error); text-align: center; padding: 1.5rem;">Błąd komunikacji z serwerem.</td></tr>';
+    }
+  }
+
+  // Usuwanie rekordu z tabeli przez Administratora (RBAC DELETE)
+  if (resultsTbody) {
+    resultsTbody.addEventListener('click', async (e) => {
+      const deleteBtn = e.target.closest('.btn-delete-row');
+      if (!deleteBtn) return;
+
+      const recordId = deleteBtn.getAttribute('data-id');
+      const athlete = deleteBtn.getAttribute('data-athlete') || 'zawodnika';
+
+      if (!confirm(`[ADMINISTRATOR]: Czy na pewno chcesz trwale usunąć wynik zawodnika ${athlete} (ID: ${recordId}) z bazy danych?`)) {
+        return;
+      }
+
+      deleteBtn.disabled = true;
+      deleteBtn.textContent = 'Usuwanie...';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/wyniki?id=${recordId}`, {
+          method: 'DELETE',
+          credentials: 'same-origin',
+          headers: getAuthHeaders()
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          showNotificationToast(`Rekord ID ${recordId} został usunięty.`);
+          await fetchResults();
+        } else {
+          alert(data.error || 'Nie udało się usunąć rekordu.');
+        }
+      } catch (err) {
+        alert('Błąd połączenia z serwerem podczas usuwania rekordu.');
+      }
+    });
+  }
+
+  // ==========================================================================
+  // 10. INICJALIZACJA APLIKACJI
+  // ==========================================================================
+  checkAuthStatus();
   fetchResults();
 });

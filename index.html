@@ -125,6 +125,34 @@
           </svg>
         </button>
 
+        <!-- Strefa Uwierzytelniania: Przycisk Logowania lub Profil Zalogowanego -->
+        <button type="button" id="btn-open-login" class="header-action-btn btn-auth" title="Zaloguj się do systemu" aria-label="Zaloguj się">
+          <svg class="btn-icon-auth" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span class="auth-btn-text">Zaloguj się</span>
+        </button>
+
+        <div id="user-badge" class="user-badge" style="display: none;">
+          <div class="user-avatar-circle" id="user-avatar-initials">S</div>
+          <div class="user-info-text">
+            <span class="user-name-display" id="user-name-display">sedzia</span>
+            <span class="user-role-tag" id="user-role-display">Sędzia</span>
+          </div>
+          <button type="button" id="btn-open-audit" class="btn-audit-logs" title="Dziennik audytu bezpieczeństwa" style="display: none;" aria-label="Dziennik audytu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span class="audit-btn-text">Audyt</span>
+          </button>
+          <button type="button" id="btn-logout" class="btn-logout" title="Wyloguj się" aria-label="Wyloguj się">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+          </button>
+        </div>
+
         <!-- Przycisk pełnej personalizacji -->
         <button type="button" id="btn-customization-toggle" class="header-action-btn btn-customization" title="Personalizuj wygląd strony" aria-label="Otwórz panel personalizacji" aria-expanded="false" aria-controls="customization-panel">
           <svg class="btn-icon-customization" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -728,6 +756,7 @@
                 <th scope="col">WYNIK</th>
                 <th scope="col">KLUB</th>
                 <th scope="col" id="col-header-date" class="sorted-col">DATA ↓</th>
+                <th scope="col" id="col-admin-header" class="col-admin-actions" style="display: none; text-align: right;">AKCJE ADMINA</th>
               </tr>
             </thead>
             <tbody id="results-tbody">
@@ -1103,6 +1132,42 @@
           <h2 class="page-title">Twój start. Nasza wspólna baza.</h2>
           <p class="page-subtitle">Dodaj wynik zawodów. Precyzyjne dane to lepsze porównania.</p>
         </header>
+
+        <!-- Baner Strefy Autoryzowanej (Dostęp ograniczony do Sędziego / Administratora) -->
+        <div id="add-result-auth-barrier" class="auth-barrier-card" role="region" aria-label="Wymagane uwierzytelnienie">
+          <div class="auth-barrier-icon-box">
+            <svg class="barrier-shield-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <rect x="9" y="9" width="6" height="7" rx="1"/>
+              <path d="M10 9V7a2 2 0 0 1 4 0v2"/>
+            </svg>
+          </div>
+          <div class="auth-barrier-content">
+            <span class="auth-barrier-tag">KONTROLA DOSTĘPU (RBAC) • BEZPIECZEŃSTWO I OCHRONA DANYCH</span>
+            <h3 class="auth-barrier-title">Wprowadzanie oficjalnych wyników wymaga autoryzacji sędziowskiej</h3>
+            <p class="auth-barrier-desc">
+              Zgodnie z zasadami integralności danych sportowych i ochroną bazy przed nieuprawnionym wprowadzaniem rekordów, dodawanie wyników z zawodów jest zastrzeżone dla <strong>Sędziów PZLA</strong> oraz <strong>Administratorów</strong>. Użytkownicy niezalogowani mają bezpieczny dostęp do przeglądania, filtrowania i eksportu danych.
+            </p>
+            <div class="auth-barrier-actions">
+              <button type="button" class="btn btn-primary btn-barrier-login" id="btn-barrier-login">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span>Zaloguj się jako Sędzia zawodów</span>
+              </button>
+              <span class="barrier-credentials-hint">Konto testowe: <code>sedzia</code> / hasło: <code>Sedzia2026!#</code></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Baner aktywnej sesji sędziowskiej (widoczny po zalogowaniu) -->
+        <div id="add-result-auth-success" class="alert alert-success auth-judge-banner" style="display: none;" role="status">
+          <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <polyline points="9 12 11 14 15 10"/>
+          </svg>
+          <div class="auth-judge-info">
+            <strong>Sesja autoryzowana (CSPRNG Token):</strong> Zalogowano jako <span id="judge-name-label" class="judge-highlight">sedzia</span> (<span id="judge-role-label">Sędzia PZLA</span>). Nowe zgłoszenie zostanie podpisane Twoim identyfikatorem w dzienniku audytu SQLite.
+          </div>
+        </div>
 
         <!-- Baner informacyjny połączenia z bazą SQLite -->
         <div class="alert alert-info" role="status">
@@ -1505,6 +1570,206 @@
       </div>
     </div>
   </footer>
+
+  <!-- =========================================================
+       MODAL UWIERZYTELNIANIA (LOGOWANIE / REJESTRACJA)
+       Zabezpieczenia: PBKDF2-SHA256, ochrona przed enumeracją,
+       wskaźnik siły hasła OWASP, szybkie logowanie demo.
+       ========================================================= -->
+  <div id="auth-modal" class="auth-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title" aria-hidden="true" style="display: none;">
+    <div class="auth-modal-backdrop" id="auth-modal-backdrop"></div>
+    <div class="auth-modal-dialog">
+      <div class="auth-modal-header">
+        <div class="auth-header-left">
+          <div class="auth-modal-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div>
+            <h2 id="auth-modal-title" class="auth-modal-title">Centrum Bezpieczeństwa</h2>
+            <p class="auth-modal-subtitle">Uwierzytelnianie i ochrona tożsamości</p>
+          </div>
+        </div>
+        <button type="button" id="auth-modal-close" class="auth-modal-close-btn" aria-label="Zamknij okno">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <!-- Zakładki Logowanie / Rejestracja -->
+      <div class="auth-tabs" role="tablist">
+        <button type="button" role="tab" id="tab-btn-login" class="auth-tab-btn active" aria-selected="true" aria-controls="auth-panel-login">
+          Logowanie
+        </button>
+        <button type="button" role="tab" id="tab-btn-register" class="auth-tab-btn" aria-selected="false" aria-controls="auth-panel-register">
+          Rejestracja
+        </button>
+      </div>
+
+      <!-- KAFLE SZYBKIEGO TESTOWANIA DLA PROWADZĄCEGO (DEMO QUICK-LOGIN) -->
+      <div class="auth-quick-demo">
+        <span class="quick-demo-label">Szybkie logowanie testowe</span>
+        <div class="quick-demo-buttons">
+          <button type="button" class="btn-demo-pill" data-demo="sedzia" title="Zaloguj jako Sędzia zawodów">
+            <span class="demo-role-dot dot-judge"></span> Sędzia PZLA
+          </button>
+          <button type="button" class="btn-demo-pill" data-demo="admin" title="Zaloguj jako Administrator systemu">
+            <span class="demo-role-dot dot-admin"></span> Administrator
+          </button>
+          <button type="button" class="btn-demo-pill" data-demo="kibic" title="Zaloguj jako Kibic / Zawodnik">
+            <span class="demo-role-dot dot-user"></span> Użytkownik
+          </button>
+        </div>
+      </div>
+
+      <!-- Komunikat statusu w modalu -->
+      <div id="auth-modal-alert" class="auth-alert" style="display: none;" role="alert"></div>
+
+      <!-- PANEL 1: LOGOWANIE -->
+      <div id="auth-panel-login" class="auth-tab-panel active" role="tabpanel" aria-labelledby="tab-btn-login">
+        <form id="login-form" class="auth-form" novalidate>
+          <div class="auth-input-group">
+            <label for="login-identifier" class="auth-label">Login lub E-mail</label>
+            <div class="input-with-icon">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <input type="text" id="login-identifier" name="login" class="auth-input" placeholder="np. sedzia lub sedzia@bieznia.pl" required autocomplete="username">
+            </div>
+          </div>
+
+          <div class="auth-input-group">
+            <label for="login-password" class="auth-label">Hasło</label>
+            <div class="input-with-icon">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <input type="password" id="login-password" name="password" class="auth-input" placeholder="••••••••••••" required autocomplete="current-password">
+              <button type="button" class="btn-toggle-pw" aria-label="Pokaż/ukryj hasło" data-target="login-password">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="auth-security-note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span>Ochrona Brute-Force: 5 błędnych prób powoduje 15-minutową blokadę konta.</span>
+          </div>
+
+          <button type="submit" id="btn-submit-login" class="btn btn-primary auth-submit-btn">
+            <span>Zaloguj się</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </form>
+      </div>
+
+      <!-- PANEL 2: REJESTRACJA -->
+      <div id="auth-panel-register" class="auth-tab-panel" role="tabpanel" aria-labelledby="tab-btn-register" style="display: none;">
+        <form id="register-form" class="auth-form" novalidate>
+          <div class="auth-input-group">
+            <label for="reg-username" class="auth-label">Nazwa użytkownika</label>
+            <div class="input-with-icon">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <input type="text" id="reg-username" name="username" class="auth-input" placeholder="np. sedzia_zawodow" required minlength="3" maxlength="30" autocomplete="username">
+            </div>
+          </div>
+
+          <div class="auth-input-group">
+            <label for="reg-email" class="auth-label">Adres e-mail</label>
+            <div class="input-with-icon">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <input type="email" id="reg-email" name="email" class="auth-input" placeholder="np. sedzia@bieznia.pl" required autocomplete="email">
+            </div>
+          </div>
+
+          <div class="auth-input-group">
+            <label for="reg-role" class="auth-label">Rola w systemie</label>
+            <select id="reg-role" name="role" class="auth-input auth-select">
+              <option value="uzytkownik">Kibic / Obserwator wyników (odczyt)</option>
+              <option value="zawodnik">Zawodnik lekkoatletyczny</option>
+              <option value="sedzia">Sędzia zawodów PZLA (wprowadzanie oficjalnych wyników)</option>
+            </select>
+          </div>
+
+          <div class="auth-input-group">
+            <label for="reg-password" class="auth-label">Hasło (wymogi OWASP)</label>
+            <div class="input-with-icon">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <input type="password" id="reg-password" name="password" class="auth-input" placeholder="Wpisz silne hasło" required autocomplete="new-password">
+              <button type="button" class="btn-toggle-pw" aria-label="Pokaż/ukryj hasło" data-target="reg-password">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            
+            <!-- Wskaźnik siły hasła -->
+            <div class="pw-strength-container">
+              <div class="pw-strength-bar"><div id="pw-strength-fill" class="pw-strength-fill"></div></div>
+              <span id="pw-strength-label" class="pw-strength-label">Wpisz hasło</span>
+            </div>
+
+            <!-- Punkty kontrolne OWASP -->
+            <ul class="pw-checklist">
+              <li id="pw-rule-len" class="pw-rule-item"><span class="rule-icon">○</span> Min. 8 znaków</li>
+              <li id="pw-rule-upper" class="pw-rule-item"><span class="rule-icon">○</span> Wielka litera</li>
+              <li id="pw-rule-num" class="pw-rule-item"><span class="rule-icon">○</span> Cyfra</li>
+              <li id="pw-rule-spec" class="pw-rule-item"><span class="rule-icon">○</span> Znak specjalny (!@#$%^&*)</li>
+            </ul>
+          </div>
+
+          <button type="submit" id="btn-submit-register" class="btn btn-primary auth-submit-btn">
+            <span>Utwórz bezpieczne konto</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MODAL DZIENNIKA AUDYTU BEZPIECZEŃSTWA (DLA ADMINA)
+       Prezentuje zarejestrowane zdarzenia: logowania, blokady,
+       próby nieautoryzowanego dostępu, dodanie/usunięcie wyników.
+       ========================================================= -->
+  <div id="audit-modal" class="auth-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="audit-modal-title" aria-hidden="true" style="display: none;">
+    <div class="auth-modal-backdrop" id="audit-modal-backdrop"></div>
+    <div class="auth-modal-dialog audit-dialog-wide">
+      <div class="auth-modal-header">
+        <div class="auth-header-left">
+          <div class="auth-modal-icon icon-shield-gold">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div>
+            <h2 id="audit-modal-title" class="auth-modal-title">Dziennik Audytu Bezpieczeństwa (Security Audit Trail)</h2>
+            <p class="auth-modal-subtitle">Rejestr zdarzeń uwierzytelniania, kontroli dostępu i integralności bazy danych (SQLite audit_logs)</p>
+          </div>
+        </div>
+        <button type="button" id="audit-modal-close" class="auth-modal-close-btn" aria-label="Zamknij dziennik">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="audit-modal-toolbar">
+        <span class="audit-count-badge">Ostatnie zdarzenia systemu:</span>
+        <button type="button" id="btn-refresh-audit" class="btn-refresh-logs">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          <span>Odśwież dziennik</span>
+        </button>
+      </div>
+
+      <div class="audit-table-wrap">
+        <table class="audit-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Czas (UTC)</th>
+              <th>Zdarzenie</th>
+              <th>Użytkownik</th>
+              <th>Adres IP</th>
+              <th>Szczegóły operacji</th>
+            </tr>
+          </thead>
+          <tbody id="audit-tbody">
+            <tr><td colspan="6" class="audit-loading">Wczytywanie dziennika zdarzeń...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
   <!-- Główny skrypt aplikacji obsługujący bazę danych, filtry i formularz -->
   <script src="app.js"></script>

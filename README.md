@@ -47,6 +47,68 @@ Wymagania: Zainstalowany **Python 3** (wersja 3.8+). Projekt nie wymaga instalow
 
 ---
 
+## 🛡️ Moduł Bezpieczeństwa i Ochrony Danych (Przedmiot Akademicki)
+
+Aplikacja została wyposażona w kompleksowy, produkcyjnej klasy system bezpieczeństwa spełniający wytyczne **OWASP**, **NIST SP 800-63B** oraz **RFC 8018**, oparty wyłącznie o wbudowaną bibliotekę standardową Pythona:
+
+### 1. Bezpieczne przechowywanie danych uwierzytelniających (Cryptography)
+- **Algorytm:** `PBKDF2-HMAC-SHA256` z **210 000 iteracji** (oficjalna rekomendacja OWASP / NIST SP 800-63B chroniąca przed atakami słownikowymi i akceleracją GPU/ASIC).
+- **Kryptograficznie bezpieczna sól:** Unikalna dla każdego użytkownika sól o długości 256 bitów (32 bajty) generowana przez CSPRNG (`secrets.token_bytes(32)`), neutralizująca tablice tęczowe (rainbow tables).
+- **Porównywanie w stałym czasie:** Weryfikacja hasła za pomocą `secrets.compare_digest` eliminująca podatność na ataki czasowe (timing attacks).
+- **Brak zapisu plain-text:** Hasła nigdy nie są logowane ani zapisywane w postaci jawnej.
+
+### 2. Bezpieczny proces logowania i weryfikacji tożsamości
+- **Odporność na enumerację użytkowników:**
+  - Jednakowy, generyczny komunikat błędu (*„Nieprawidłowy login lub hasło.”*) niezależnie od tego, czy konto istnieje, czy podano błędne hasło.
+  - Wykonywanie obliczenia atrapowego (`dummy_verify_password()` o identycznym koszcie 210 000 iteracji PBKDF2), gdy użytkownik nie istnieje, co uniemożliwia enumerację poprzez analizę czasu odpowiedzi serwera (side-channel timing attacks).
+- **Ochrona przed atakami Brute-Force & Credential Stuffing:**
+  - Mechanizm blokady konta (*Account Lockout*): po **5 nieudanych próbach logowania** konto zostaje zablokowane na **15 minut** (`lockout_until`).
+  - Licznik błędnych prób jest zerowany po poprawnym zalogowaniu.
+- **Polityka złożoności haseł (OWASP Password Policy):**
+  - Minimum 8 znaków, maksimum 128 (ochrona przed DoS / ReDoS).
+  - Wymóg: co najmniej jedna mała litera, jedna wielka litera, jedna cyfra oraz jeden znak specjalny.
+  - Interaktywny wskaźnik siły hasła na frontendzie z dynamicznym sprawdzaniem punktów kontrolnych.
+
+### 3. Ochrona warstwy danych i autoryzacja (RBAC & SQL Injection Defense)
+- **100% zapytań sparametryzowanych:** Wszystkie zapytania do bazy SQLite korzystają z bindowania parametrów (`?`), całkowicie eliminując podatność na SQL Injection.
+- **Biała lista sortowania:** Parametry sortowania i filtrowania są rygorystycznie walidowane na podstawie dozwolonych wartości.
+- **Kontrola dostępu oparta na rolach (Role-Based Access Control - RBAC):**
+  - `kibic` / `uzytkownik` (rola publiczna): bezpieczny dostęp tylko do odczytu, wyszukiwania, analizy statystycznej i eksportu CSV.
+  - `sedzia` (rola sędziowska): autoryzacja do zatwierdzania i dopisywania oficjalnych wyników zawodów (`POST /api/wyniki`). Niezalogowani użytkownicy widzą elegancki baner strefy autoryzowanej z blokadą formularza.
+  - `admin` (rola administratora): pełne uprawnienia, w tym autoryzowane usuwanie rekordów z bazy (`DELETE /api/wyniki`) oraz wgląd w dziennik audytu.
+- **Dziennik audytu bezpieczeństwa (*Security Audit Trail*):**
+  - Trwała tabela `audit_logs` w SQLite rejestrująca zdarzenia: `LOGIN_SUCCESS`, `LOGIN_FAILED`, `ACCOUNT_LOCKED`, `LOGOUT`, `REGISTER_SUCCESS`, `RESULT_ADDED`, `RESULT_DELETED`, `ACCESS_DENIED`.
+  - Rejestracja znaczników czasu UTC, adresu IP, nazwy konta i szczegółów operacji.
+  - Dedykowany podgląd audytu w czasie rzeczywistym dla Administratora w interfejsie aplikacji.
+
+### 4. Walidacja danych i zarządzanie sesją (Session Management & Defense-in-Depth)
+- **Kryptograficzne tokeny sesyjne:** Identyfikator sesji o 256-bitowej entropii generowany przez CSPRNG (`secrets.token_hex(32)`).
+- **Zarządzanie stanem sesji:** Tabela `sessions` w bazie danych z przesuwnym czasem wygaśnięcia (*sliding expiration*, 2 godziny).
+- **Bezpieczne ciasteczka HTTP:**
+  - `HttpOnly`: flaga uniemożliwiająca dostęp do ciasteczka skryptom JavaScript, neutralizująca ryzyko kradzieży sesji przez ataki XSS.
+  - `SameSite=Lax`: ochrona przed atakami Cross-Site Request Forgery (CSRF).
+- **Nagłówki bezpieczeństwa HTTP wstrzykiwane do każdego zapytania:**
+  - `X-Content-Type-Options: nosniff` (ochrona przed MIME sniffing).
+  - `X-Frame-Options: DENY` (ochrona przed Clickjackingiem).
+  - `X-XSS-Protection: 1; mode=block`.
+  - `Referrer-Policy: strict-origin-when-cross-origin`.
+  - `Content-Security-Policy: default-src 'self' ...`.
+- **Sanityzacja danych wejściowych:** Ucieczka encji HTML (`html.escape`) oraz ścisła walidacja typów i zakresów liczbowych (zapobieganie Stored XSS).
+
+---
+
+## 🔑 Predefiniowane konta demonstracyjne do testowania
+
+Dla ułatwienia oceny przez prowadzącego, w modalu logowania dostępne są **przyciski szybkiego logowania 1-klik**, jak również dane dostępowe:
+
+| Rola w systemie | Login | Hasło | Uprawnienia |
+| :--- | :--- | :--- | :--- |
+| **Sędzia PZLA** | `sedzia` | `Sedzia2026!#` | Wprowadzanie oficjalnych wyników do bazy |
+| **Administrator** | `admin` | `Admin2026!#` | Zarządzanie, usuwanie rekordów, dziennik audytu |
+| **Kibic / Gość** | `kibic` | `Kibic2026!#` | Dostęp do odczytu, brak uprawnień do edycji |
+
+---
+
 ## 📁 Struktura plików
 
 ```
