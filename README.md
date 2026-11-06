@@ -47,7 +47,7 @@ Wymagania: Zainstalowany **Python 3** (wersja 3.8+). Projekt nie wymaga instalow
 
 ---
 
-## 🛡️ Moduł Bezpieczeństwa i Ochrony Danych (Przedmiot Akademicki)
+## 🛡️ Moduł Bezpieczeństwa i Ochrony Danych
 
 Aplikacja została wyposażona w kompleksowy, produkcyjnej klasy system bezpieczeństwa spełniający wytyczne **OWASP**, **NIST SP 800-63B** oraz **RFC 8018**, oparty wyłącznie o wbudowaną bibliotekę standardową Pythona:
 
