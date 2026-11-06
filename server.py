@@ -19,8 +19,9 @@ MAX_FAILED_ATTEMPTS = 5         # Maksymalna liczba nieudanych prób logowania p
 LOCKOUT_MINUTES = 15            # Czas trwania blokady konta (ochrona przed Brute-Force)
 SESSION_LIFETIME_HOURS = 2      # Czas ważności sesji (z odnawianiem przesuwnym)
 
-# 18 oryginalnych rekordów z Figmy do zainicjowania bazy
+# Demonstracyjne rekordy (mężczyźni i kobiety w 3 konkurencjach) do zainicjowania bazy
 INITIAL_RECORDS = [
+    # --- MĘŻCZYŹNI ---
     ("Jakub Nowak", "AZS Warszawa", "mezczyzni", "open", "100 m", "2026-05-24", 10.84, "10,84 s", "s", None, 1),
     ("Michał Kowalski", "KS Sprint Kraków", "mezczyzni", "open", "100 m", "2026-05-24", 10.96, "10,96 s", "s", None, 1),
     ("Adam Wiśniewski", "WKS Poznań", "mezczyzni", "open", "100 m", "2026-05-24", 11.08, "11,08 s", "s", None, 0),
@@ -41,6 +42,28 @@ INITIAL_RECORDS = [
     ("Igor Grabowski", "MKS Gdańsk", "mezczyzni", "open", "Skok w dal", "2026-05-10", 7.06, "7,06 m", "m", None, 0),
     ("Oskar Pawlak", "AZS Warszawa", "mezczyzni", "open", "Skok w dal", "2026-05-10", 6.94, "6,94 m", "m", None, 0),
     ("Łukasz Michalski", "KS Sprint Kraków", "mezczyzni", "open", "Skok w dal", "2026-05-10", 6.82, "6,82 m", "m", None, 0),
+
+    # --- KOBIETY ---
+    ("Ewa Swoboda", "AZS Warszawa", "kobiety", "open", "100 m", "2026-05-24", 11.05, "11,05 s", "s", "+0.9", 1),
+    ("Martyna Kotwiła", "KS Sprint Kraków", "kobiety", "open", "100 m", "2026-05-24", 11.24, "11,24 s", "s", "+0.9", 1),
+    ("Magdalena Stefanowicz", "WKS Poznań", "kobiety", "open", "100 m", "2026-05-24", 11.36, "11,36 s", "s", "+0.9", 0),
+    ("Paulina Guzowska", "MKS Gdańsk", "kobiety", "open", "100 m", "2026-05-24", 11.48, "11,48 s", "s", None, 0),
+    ("Zuzanna Wyppich", "AZS Warszawa", "kobiety", "open", "100 m", "2026-05-24", 11.60, "11,60 s", "s", None, 0),
+    ("Oliwia Nowacka", "KS Sprint Kraków", "kobiety", "open", "100 m", "2026-05-24", 11.75, "11,75 s", "s", None, 0),
+
+    ("Natalia Kaczmarek", "AZS Warszawa", "kobiety", "open", "400 m", "2026-05-17", 49.98, "49,98 s", "s", None, 1),
+    ("Anna Kiełbasińska", "KS Sprint Kraków", "kobiety", "open", "400 m", "2026-05-17", 50.85, "50,85 s", "s", None, 1),
+    ("Justyna Święty-Ersetic", "WKS Poznań", "kobiety", "open", "400 m", "2026-05-17", 51.42, "51,42 s", "s", None, 0),
+    ("Iga Baumgart-Witan", "MKS Gdańsk", "kobiety", "open", "400 m", "2026-05-17", 52.15, "52,15 s", "s", None, 0),
+    ("Alicja Wrona-Kutrzepa", "AZS Warszawa", "kobiety", "open", "400 m", "2026-05-17", 52.88, "52,88 s", "s", None, 0),
+    ("Karolina Łozowska", "WKS Poznań", "kobiety", "open", "400 m", "2026-05-17", 53.40, "53,40 s", "s", None, 0),
+
+    ("Nikola Horowska", "KS Sprint Kraków", "kobiety", "open", "Skok w dal", "2026-05-10", 6.68, "6,68 m", "m", "+1.2", 1),
+    ("Roksana Jędraszak", "WKS Poznań", "kobiety", "open", "Skok w dal", "2026-05-10", 6.45, "6,45 m", "m", "+0.7", 1),
+    ("Anna Matuszewicz", "AZS Warszawa", "kobiety", "open", "Skok w dal", "2026-05-10", 6.32, "6,32 m", "m", None, 0),
+    ("Magdalena Bokun", "MKS Gdańsk", "kobiety", "open", "Skok w dal", "2026-05-10", 6.20, "6,20 m", "m", None, 0),
+    ("Joanna Kłodawska", "AZS Warszawa", "kobiety", "open", "Skok w dal", "2026-05-10", 6.08, "6,08 m", "m", None, 0),
+    ("Julia Adamczyk", "KS Sprint Kraków", "kobiety", "open", "Skok w dal", "2026-05-10", 5.92, "5,92 m", "m", None, 0),
 ]
 
 # ==============================================================================
@@ -707,6 +730,7 @@ class BiezniaHandler(SimpleHTTPRequestHandler):
         konkurencja = params.get('konkurencja', ['all'])[0].strip()
         klub = params.get('klub', ['all'])[0].strip()
         sortuj = params.get('sortuj', ['data_desc'])[0].strip()
+        gender = params.get('gender', params.get('plec', ['all']))[0].strip().lower()
 
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
@@ -718,6 +742,12 @@ class BiezniaHandler(SimpleHTTPRequestHandler):
         if szukaj:
             sql += " AND (LOWER(athlete_name) LIKE ? OR LOWER(athlete_club) LIKE ?)"
             args.extend([f"%{szukaj}%", f"%{szukaj}%"])
+
+        if gender and gender != 'all':
+            if gender in ('kobiety', 'k', 'female', 'f'):
+                sql += " AND gender = 'kobiety'"
+            elif gender in ('mezczyzni', 'm', 'male'):
+                sql += " AND gender = 'mezczyzni'"
 
         if konkurencja and konkurencja != 'all':
             discipline_map = {
@@ -784,6 +814,12 @@ class BiezniaHandler(SimpleHTTPRequestHandler):
         cursor.execute("SELECT COUNT(DISTINCT athlete_club) AS total_clubs FROM wyniki")
         total_clubs = cursor.fetchone()['total_clubs']
 
+        cursor.execute("SELECT COUNT(*) AS count_women FROM wyniki WHERE gender = 'kobiety'")
+        count_women = cursor.fetchone()['count_women']
+
+        cursor.execute("SELECT COUNT(*) AS count_men FROM wyniki WHERE gender = 'mezczyzni'")
+        count_men = cursor.fetchone()['count_men']
+
         cursor.execute("SELECT AVG(score) AS avg_100m, COUNT(*) AS count_100m FROM wyniki WHERE discipline = '100 m'")
         row_100m = cursor.fetchone()
         avg_100m = round(row_100m['avg_100m'], 2) if row_100m['avg_100m'] else 0
@@ -803,6 +839,8 @@ class BiezniaHandler(SimpleHTTPRequestHandler):
             "total_count": total_count,
             "total_disciplines": total_disc,
             "total_clubs": total_clubs,
+            "count_women": count_women,
+            "count_men": count_men,
             "avg_100m": avg_100m,
             "leader_100m": leader_100m,
             "leader_400m": leader_400m,

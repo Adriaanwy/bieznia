@@ -441,7 +441,7 @@
         <div class="stats-strip">
           <div class="stats-grid">
             <div class="stat-item">
-              <span class="stat-number">18</span>
+              <span id="hero-stat-total" class="stat-number">37</span>
               <span class="stat-label">wyników w bazie</span>
             </div>
             <div class="stat-item">
@@ -454,7 +454,7 @@
             </div>
           </div>
           <p class="stats-footnote">
-            Przykładowa baza: mężczyźni open • 10–24 maja 2026 • dane demonstracyjne
+            Baza zawodów: kobiety i mężczyźni open • Sezon 2026 • dane demonstracyjne
           </p>
         </div>
 
@@ -672,6 +672,42 @@
             <button type="button" id="btn-clear-filters" class="btn-link" aria-label="Wyczyść wszystkie filtry wyszukiwania">Wyczyść filtry</button>
           </div>
 
+          <!-- Przełącznik kategorii płci (Wszyscy / Mężczyźni / Kobiety) -->
+          <div class="gender-filter-row">
+            <span class="gender-filter-title">Kategoria:</span>
+            <div class="gender-toggle-group" role="radiogroup" aria-label="Filtruj według kategorii płci">
+              <button type="button" class="gender-btn active" data-gender="all" role="radio" aria-checked="true" title="Pokaż wszystkie wyniki">
+                <svg class="gender-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>Wszyscy</span>
+                <span class="gender-count" id="count-gender-all">37</span>
+              </button>
+              <button type="button" class="gender-btn" data-gender="mezczyzni" role="radio" aria-checked="false" title="Pokaż tylko wyniki mężczyzn">
+                <svg class="gender-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <circle cx="10" cy="14" r="5"></circle>
+                  <line x1="19" y1="5" x2="13.6" y2="10.4"></line>
+                  <line x1="15" y1="5" x2="19" y2="5"></line>
+                  <line x1="19" y1="5" x2="19" y2="9"></line>
+                </svg>
+                <span>Mężczyźni</span>
+                <span class="gender-count" id="count-gender-men">19</span>
+              </button>
+              <button type="button" class="gender-btn" data-gender="kobiety" role="radio" aria-checked="false" title="Pokaż tylko wyniki kobiet">
+                <svg class="gender-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <circle cx="12" cy="9" r="5"></circle>
+                  <line x1="12" y1="14" x2="12" y2="21"></line>
+                  <line x1="9" y1="18" x2="15" y2="18"></line>
+                </svg>
+                <span>Kobiety</span>
+                <span class="gender-count" id="count-gender-women">18</span>
+              </button>
+            </div>
+          </div>
+
           <form id="filters-form" class="filters-form" role="search" aria-label="Filtry wyników" onsubmit="return false;">
             <div class="filter-group">
               <label for="search-athlete" class="filter-label">Zawodnik</label>
@@ -744,7 +780,7 @@
             <span>Podświetlenie: wiersz pod kursorem</span>
           </div>
         </div>
-        <p class="table-subtitle">Mężczyźni open • 10–24.05.2026 • najnowsze daty najpierw</p>
+        <p id="table-subtitle" class="table-subtitle">Wszyscy (Kobiety i Mężczyźni) • Sezon 2026 • najnowsze daty najpierw</p>
 
         <!-- Główna tabela semantyczna HTML5 z kompletnymi danymi z bazy -->
         <div class="table-container" tabindex="0" aria-label="Tabela wyników lekkoatletycznych">
@@ -812,9 +848,9 @@
               <span>10–24 maja 2026</span>
               <span class="arrow-down" aria-hidden="true">▾</span>
             </div>
-            <span class="category-pill">Mężczyźni open</span>
+            <span id="analiza-category-pill" class="category-pill">Wszyscy open</span>
           </div>
-          <span class="analiza-meta-text">Cała baza • 18 startów • 3 konkurencje</span>
+          <span id="analiza-meta-text" class="analiza-meta-text">Cała baza • 37 startów • 3 konkurencje</span>
         </div>
 
         <!-- 3 Karty KPI / wskaźników -->
@@ -831,8 +867,8 @@
                 </svg>
               </div>
             </div>
-            <div class="kpi-value">18</div>
-            <div class="kpi-desc">18 zawodników • wszystkie konkurencje</div>
+            <div id="kpi-val-total" class="kpi-value">37</div>
+            <div id="kpi-desc-total" class="kpi-desc">37 zawodników • wszystkie konkurencje</div>
           </div>
 
           <div class="kpi-card">
@@ -845,8 +881,8 @@
                 </svg>
               </div>
             </div>
-            <div class="kpi-value">11,14 <span class="kpi-unit">s</span></div>
-            <div class="kpi-desc">Średnia arytmetyczna z 6 wyników na 100 m</div>
+            <div id="kpi-val-avg100" class="kpi-value">11,28 <span class="kpi-unit">s</span></div>
+            <div id="kpi-desc-avg100" class="kpi-desc">Średnia arytmetyczna z wyników na 100 m</div>
           </div>
 
           <div class="kpi-card">
@@ -860,7 +896,7 @@
               </div>
             </div>
             <div class="kpi-value">4</div>
-            <div class="kpi-desc">Dwa kluby po 5 startów, dwa po 4</div>
+            <div class="kpi-desc">AZS Warszawa, KS Sprint Kraków, WKS Poznań, MKS Gdańsk</div>
           </div>
 
         </div>
@@ -884,12 +920,16 @@
           <!-- Legenda wykresu -->
           <div class="chart-legend-bar">
             <div class="legend-item">
-              <span class="legend-color legend-color-leader" aria-hidden="true"></span>
-              <span>Najlepszy wynik</span>
+              <span class="legend-color legend-color-gold" aria-hidden="true"></span>
+              <span id="legend-label-leader">1. miejsce (Złoto)</span>
             </div>
-            <div class="legend-item">
-              <span class="legend-color legend-color-standard" aria-hidden="true"></span>
-              <span>Pozostałe wyniki</span>
+            <div class="legend-item" id="legend-item-female">
+              <span class="legend-color legend-color-female" aria-hidden="true"></span>
+              <span id="legend-label-female">Kobiety (Różowy)</span>
+            </div>
+            <div class="legend-item" id="legend-item-male">
+              <span class="legend-color legend-color-male" aria-hidden="true"></span>
+              <span id="legend-label-male">Mężczyźni (Błękitny)</span>
             </div>
             <span class="legend-rule">Krótszy czas = lepszy wynik</span>
           </div>
@@ -992,7 +1032,7 @@
               <div class="ranking-card-top">
                 <div class="ranking-discipline">
                   <h4 class="discipline-name">100 m</h4>
-                  <span class="discipline-meta">Czas rosnąco • 6 zawodników</span>
+                  <span id="ranking-meta-100m" class="discipline-meta">Czas rosnąco • Top liderzy</span>
                 </div>
                 <div class="discipline-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1002,7 +1042,7 @@
                 </div>
               </div>
 
-              <ol class="ranking-list">
+              <ol id="ranking-list-100m" class="ranking-list">
                 <li class="ranking-item">
                   <span class="rank-pos pos-1">1</span>
                   <div class="rank-details">
@@ -1043,7 +1083,7 @@
               <div class="ranking-card-top">
                 <div class="ranking-discipline">
                   <h4 class="discipline-name">Skok w dal</h4>
-                  <span class="discipline-meta">Odległość malejąco • 6 zawodników</span>
+                  <span id="ranking-meta-skok" class="discipline-meta">Odległość malejąco • Top liderzy</span>
                 </div>
                 <div class="discipline-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1054,7 +1094,7 @@
                 </div>
               </div>
 
-              <ol class="ranking-list">
+              <ol id="ranking-list-skok" class="ranking-list">
                 <li class="ranking-item">
                   <span class="rank-pos pos-1">1</span>
                   <div class="rank-details">
@@ -1104,13 +1144,13 @@
                   <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
                   <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
                 </svg>
-                Lider 400 m
+                <span id="leader-400m-title">Lider 400 m</span>
               </span>
-              <span class="leader-person">Mateusz Zieliński • WKS Poznań</span>
+              <span id="leader-400m-person" class="leader-person">Mateusz Zieliński • WKS Poznań</span>
             </div>
             <div class="leader-score-group">
-              <span class="leader-score">48,12 s</span>
-              <span class="badge-rz">RŻ</span>
+              <span id="leader-400m-score" class="leader-score">48,12 s</span>
+              <span id="leader-400m-badge" class="badge-rz">RŻ</span>
             </div>
           </div>
 

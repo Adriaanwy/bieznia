@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     search: '',
     discipline: 'all',
     club: 'all',
+    gender: 'all',
     sort: 'data_desc',
     results: []
   };
@@ -21,6 +22,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const filterClub = document.getElementById('filter-club');
   const btnClearFilters = document.getElementById('btn-clear-filters');
   const sortButtons = document.querySelectorAll('.sort-btn');
+  const genderButtons = document.querySelectorAll('.gender-btn');
+  const tableSubtitle = document.getElementById('table-subtitle');
+  const countGenderAll = document.getElementById('count-gender-all');
+  const countGenderMen = document.getElementById('count-gender-men');
+  const countGenderWomen = document.getElementById('count-gender-women');
+  const heroStatTotal = document.getElementById('hero-stat-total');
   const resultsTbody = document.getElementById('results-tbody');
   const resultsCountBadge = document.getElementById('results-count-badge');
   const resultsCountFooter = document.getElementById('results-count-footer');
@@ -112,7 +119,10 @@ document.addEventListener('DOMContentLoaded', () => {
     : 'http://127.0.0.1:8000';
 
   /**
-   * Pobiera wyniki z backendu SQLite (/api/wyniki) zgodnie z aktualnymi filtrami i sortowaniem
+   * Pobiera wyniki z backendu SQLite (/api/wyniki) zgodnie z aktualnymi filtrami i sortowaniem.
+   * Posiada wbudowaną podwójną warstwę filtrującą (klient + serwer), dzięki czemu
+   * zmiana filtrów działa natychmiastowo, płynnie i bezbłędnie nawet jeśli serwer
+   * w pamięci nie został jeszcze zrestartowany.
    */
   async function fetchResults() {
     try {
@@ -120,6 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
         szukaj: state.search,
         konkurencja: state.discipline,
         klub: state.club,
+        gender: state.gender,
         sortuj: state.sort
       });
 
@@ -128,13 +139,75 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(`Błąd serwera: ${response.status}`);
       }
 
-      const data = await response.json();
+      let data = await response.json();
+
+      // Odporne, bezwzględne filtrowanie po płci na poziomie frontendu
+      if (state.gender && state.gender !== 'all') {
+        const targetGender = state.gender.toLowerCase().trim();
+        data = data.filter(row => {
+          const g = (row.gender || '').toLowerCase().trim();
+          if (targetGender === 'kobiety') {
+            return g === 'kobiety' || g === 'k' || g === 'female' || g === 'kobieta';
+          }
+          if (targetGender === 'mezczyzni') {
+            return g === 'mezczyzni' || g === 'm' || g === 'male' || g === 'mezczyzna';
+          }
+          return true;
+        });
+      }
+
+      // Filtrowanie po konkurencji (zabezpieczenie)
+      if (state.discipline && state.discipline !== 'all') {
+        data = data.filter(row => row.discipline === state.discipline);
+      }
+
+      // Filtrowanie po klubie (zabezpieczenie)
+      if (state.club && state.club !== 'all') {
+        data = data.filter(row => row.athlete_club === state.club);
+      }
+
+      // Filtrowanie po zawodniku / wyszukiwaniu (zabezpieczenie)
+      if (state.search) {
+        const q = state.search.toLowerCase().trim();
+        data = data.filter(row =>
+          (row.athlete_name && row.athlete_name.toLowerCase().includes(q)) ||
+          (row.athlete_club && row.athlete_club.toLowerCase().includes(q))
+        );
+      }
+
       state.results = data;
       renderTable(data);
       updateCounts(data.length);
+      refreshGenderCounts();
     } catch (error) {
       console.error('Błąd pobierania wyników:', error);
       renderErrorState();
+    }
+  }
+
+  /**
+   * Odświeża liczniki płci na przyciskach filtrowania oraz w sekcji Hero
+   */
+  async function refreshGenderCounts() {
+    try {
+      const res = await fetch(`${API_BASE}/api/statystyki`);
+      if (res.ok) {
+        const stats = await res.json();
+        if (stats.total_count !== undefined && countGenderAll) {
+          countGenderAll.textContent = stats.total_count;
+        }
+        if (stats.count_men !== undefined && countGenderMen) {
+          countGenderMen.textContent = stats.count_men;
+        }
+        if (stats.count_women !== undefined && countGenderWomen) {
+          countGenderWomen.textContent = stats.count_women;
+        }
+        if (stats.total_count !== undefined && heroStatTotal) {
+          heroStatTotal.textContent = stats.total_count;
+        }
+      }
+    } catch (e) {
+      // Przy braku łączności pozostają wartości początkowe
     }
   }
 
@@ -164,18 +237,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const isAdmin = currentUser && currentUser.authenticated && currentUser.user && currentUser.user.role === 'admin';
 
-    resultsTbody.innerHTML = results.map(row => {
+    resultsTbody.innerHTML = results.map((row, index) => {
       const rzBadgeHtml = row.is_rz 
         ? '<span class="badge-rz">RŻ</span>' 
         : '';
+      const isFemale = row.gender === 'kobiety';
+      const genderBadgeHtml = `<span class="badge-gender ${isFemale ? 'badge-gender-k' : 'badge-gender-m'}" title="${isFemale ? 'Kobieta' : 'Mężczyzna'}">${isFemale ? 'K' : 'M'}</span>`;
+      const isFirst = index === 0;
+      const firstPlaceBadge = isFirst ? '<span class="badge-first-gold" title="1. miejsce w aktualnym widoku">🥇</span> ' : '';
       const adminColHtml = isAdmin
         ? `<td style="text-align: right;"><button type="button" class="btn-delete-row" data-id="${row.id}" data-athlete="${escapeHtml(row.athlete_name)}" title="Usuń rekord z bazy (Admin)">Usuń</button></td>`
         : '';
 
       return `
-        <tr>
+        <tr class="${isFirst ? 'row-first-leader' : ''}">
           <td>
-            <span class="athlete-name-text">${escapeHtml(row.athlete_name)}</span>
+            ${firstPlaceBadge}<span class="athlete-name-text">${escapeHtml(row.athlete_name)}</span>
+            ${genderBadgeHtml}
             ${rzBadgeHtml}
           </td>
           <td>${escapeHtml(row.discipline)}</td>
@@ -294,17 +372,61 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Przełącznik kategorii płci (Wszyscy / Mężczyźni / Kobiety)
+  genderButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const selectedGender = button.dataset.gender || 'all';
+      if (state.gender === selectedGender) return;
+
+      genderButtons.forEach(btn => {
+        const isActive = btn === button;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
+      });
+
+      state.gender = selectedGender;
+
+      // Dynamiczna zmiana podtytułu tabeli
+      if (tableSubtitle) {
+        if (selectedGender === 'kobiety') {
+          tableSubtitle.textContent = 'Kobiety open • Sezon 2026 • najnowsze daty najpierw';
+        } else if (selectedGender === 'mezczyzni') {
+          tableSubtitle.textContent = 'Mężczyźni open • Sezon 2026 • najnowsze daty najpierw';
+        } else {
+          tableSubtitle.textContent = 'Wszyscy (Kobiety i Mężczyźni) • Sezon 2026 • najnowsze daty najpierw';
+        }
+      }
+
+      // 1. Natychmiastowe odświeżenie i przefiltrowanie tabeli
+      fetchResults();
+
+      // 2. Natychmiastowa synchronizacja sekcji analitycznej (wykres, rankingi, wskaźniki KPI)
+      updateAnalysisSection(selectedGender);
+    });
+  });
+
   // Przycisk "Wyczyść filtry"
   if (btnClearFilters) {
     btnClearFilters.addEventListener('click', () => {
       state.search = '';
       state.discipline = 'all';
       state.club = 'all';
+      state.gender = 'all';
       state.sort = 'data_desc';
 
       if (searchInput) searchInput.value = '';
       if (filterDiscipline) filterDiscipline.value = 'all';
       if (filterClub) filterClub.value = 'all';
+
+      // Reset przycisków wyboru płci do "Wszyscy"
+      genderButtons.forEach(btn => {
+        const isAll = btn.dataset.gender === 'all';
+        btn.classList.toggle('active', isAll);
+        btn.setAttribute('aria-checked', isAll ? 'true' : 'false');
+      });
+      if (tableSubtitle) {
+        tableSubtitle.textContent = 'Wszyscy (Kobiety i Mężczyźni) • Sezon 2026 • najnowsze daty najpierw';
+      }
 
       // Reset przycisków sortowania do domyślnego "Data malejąco ↓"
       sortButtons.forEach(btn => {
@@ -316,6 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (colHeaderDate) colHeaderDate.textContent = 'DATA ↓';
 
       fetchResults();
+      updateAnalysisSection('all');
     });
   }
 
@@ -676,7 +799,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================================================
-  // 7. INTERAKTYWNOŚĆ WYKRESU ANALITYCZNEGO (100m, 400m, Skok w dal)
+  // 7. INTERAKTYWNOŚĆ WYKRESU ANALITYCZNEGO ORAZ RANKINGÓW Z PODZIAŁEM NA PŁEĆ
   // ==========================================================================
   const chartDisciplineSelect = document.getElementById('chart-discipline-select');
   const chartTitleEl = document.querySelector('.chart-title');
@@ -684,77 +807,217 @@ document.addEventListener('DOMContentLoaded', () => {
   const barChartContainer = document.querySelector('.bar-chart-container');
   const chartSummaryStats = document.querySelector('.chart-summary-stats');
 
-  const chartDataSets = {
-    '100m': {
-      title: '100 m. Jeden dystans, sześć wyników.',
-      subtitle: '24.05.2026 • mężczyźni open • czas w sekundach',
-      rule: 'Krótszy czas = lepszy wynik',
-      xAxis: ['0', '3', '6', '9', '12 s'],
-      unit: 's',
-      lowerIsBetter: true,
-      maxScale: 12.0,
-      rows: [
-        { athlete: 'Jakub Nowak', score: 10.84, display: '10,84 s', isLeader: true },
-        { athlete: 'Michał Kowalski', score: 10.96, display: '10,96 s' },
-        { athlete: 'Adam Wiśniewski', score: 11.08, display: '11,08 s' },
-        { athlete: 'Kacper Wójcik', score: 11.20, display: '11,20 s' },
-        { athlete: 'Piotr Kamiński', score: 11.32, display: '11,32 s' },
-        { athlete: 'Filip Lewandowski', score: 11.44, display: '11,44 s' }
-      ],
-      metrics: [
-        { val: '10,84 s', label: 'najlepszy czas' },
-        { val: '11,14 s', label: 'średnia' },
-        { val: '0,60 s', label: 'rozstęp wyników' }
-      ]
+  const chartDataSetsByGender = {
+    mezczyzni: {
+      '100m': {
+        title: '100 m mężczyzn. Jeden dystans, sześć wyników.',
+        subtitle: '24.05.2026 • mężczyźni open • czas w sekundach',
+        rule: 'Krótszy czas = lepszy wynik',
+        xAxis: ['0', '3', '6', '9', '12 s'],
+        unit: 's',
+        lowerIsBetter: true,
+        maxScale: 12.0,
+        rows: [
+          { athlete: 'Jakub Nowak', score: 10.84, display: '10,84 s', isLeader: true },
+          { athlete: 'Michał Kowalski', score: 10.96, display: '10,96 s' },
+          { athlete: 'Adam Wiśniewski', score: 11.08, display: '11,08 s' },
+          { athlete: 'Kacper Wójcik', score: 11.20, display: '11,20 s' },
+          { athlete: 'Piotr Kamiński', score: 11.32, display: '11,32 s' },
+          { athlete: 'Filip Lewandowski', score: 11.44, display: '11,44 s' }
+        ],
+        metrics: [
+          { val: '10,84 s', label: 'najlepszy czas' },
+          { val: '11,14 s', label: 'średnia' },
+          { val: '0,60 s', label: 'rozstęp wyników' }
+        ]
+      },
+      '400m': {
+        title: '400 m mężczyzn. Jeden dystans, sześć wyników.',
+        subtitle: '17.05.2026 • mężczyźni open • czas w sekundach',
+        rule: 'Krótszy czas = lepszy wynik',
+        xAxis: ['0', '15', '30', '45', '60 s'],
+        unit: 's',
+        lowerIsBetter: true,
+        maxScale: 55.0,
+        rows: [
+          { athlete: 'Mateusz Zieliński', score: 48.12, display: '48,12 s', isLeader: true },
+          { athlete: 'Bartosz Szymański', score: 48.76, display: '48,76 s' },
+          { athlete: 'Tomasz Woźniak', score: 49.20, display: '49,20 s' },
+          { athlete: 'Paweł Dąbrowski', score: 49.84, display: '49,84 s' },
+          { athlete: 'Marcin Kozłowski', score: 50.16, display: '50,16 s' },
+          { athlete: 'Szymon Jankowski', score: 50.92, display: '50,92 s' }
+        ],
+        metrics: [
+          { val: '48,12 s', label: 'najlepszy czas' },
+          { val: '49,50 s', label: 'średnia' },
+          { val: '2,80 s', label: 'rozstęp wyników' }
+        ]
+      },
+      'skok': {
+        title: 'Skok w dal mężczyzn. Próby finałowe.',
+        subtitle: '10.05.2026 • mężczyźni open • odległość w metrach',
+        rule: 'Dłuższy skok = lepszy wynik',
+        xAxis: ['0', '2', '4', '6', '8 m'],
+        unit: 'm',
+        lowerIsBetter: false,
+        maxScale: 8.0,
+        rows: [
+          { athlete: 'Antoni Mazur', score: 7.42, display: '7,42 m', isLeader: true },
+          { athlete: 'Wojciech Krawczyk', score: 7.30, display: '7,30 m' },
+          { athlete: 'Dawid Piotrowski', score: 7.18, display: '7,18 m' },
+          { athlete: 'Igor Grabowski', score: 7.06, display: '7,06 m' },
+          { athlete: 'Oskar Pawlak', score: 6.94, display: '6,94 m' },
+          { athlete: 'Łukasz Michalski', score: 6.82, display: '6,82 m' }
+        ],
+        metrics: [
+          { val: '7,42 m', label: 'najlepszy skok' },
+          { val: '7,12 m', label: 'średnia' },
+          { val: '0,60 m', label: 'rozstęp wyników' }
+        ]
+      }
     },
-    '400m': {
-      title: '400 m. Jeden dystans, sześć wyników.',
-      subtitle: '17.05.2026 • mężczyźni open • czas w sekundach',
-      rule: 'Krótszy czas = lepszy wynik',
-      xAxis: ['0', '15', '30', '45', '60 s'],
-      unit: 's',
-      lowerIsBetter: true,
-      maxScale: 55.0,
-      rows: [
-        { athlete: 'Mateusz Zieliński', score: 48.12, display: '48,12 s', isLeader: true },
-        { athlete: 'Bartosz Szymański', score: 48.76, display: '48,76 s' },
-        { athlete: 'Tomasz Woźniak', score: 49.20, display: '49,20 s' },
-        { athlete: 'Paweł Dąbrowski', score: 49.84, display: '49,84 s' },
-        { athlete: 'Marcin Kozłowski', score: 50.16, display: '50,16 s' },
-        { athlete: 'Szymon Jankowski', score: 50.92, display: '50,92 s' }
-      ],
-      metrics: [
-        { val: '48,12 s', label: 'najlepszy czas' },
-        { val: '49,50 s', label: 'średnia' },
-        { val: '2,80 s', label: 'rozstęp wyników' }
-      ]
+    kobiety: {
+      '100m': {
+        title: '100 m kobiet. Jeden dystans, sześć wyników.',
+        subtitle: '24.05.2026 • kobiety open • czas w sekundach',
+        rule: 'Krótszy czas = lepszy wynik',
+        xAxis: ['0', '3', '6', '9', '12 s'],
+        unit: 's',
+        lowerIsBetter: true,
+        maxScale: 12.0,
+        rows: [
+          { athlete: 'Ewa Swoboda', score: 11.05, display: '11,05 s', isLeader: true },
+          { athlete: 'Martyna Kotwiła', score: 11.24, display: '11,24 s' },
+          { athlete: 'Magdalena Stefanowicz', score: 11.36, display: '11,36 s' },
+          { athlete: 'Paulina Guzowska', score: 11.48, display: '11,48 s' },
+          { athlete: 'Zuzanna Wyppich', score: 11.60, display: '11,60 s' },
+          { athlete: 'Oliwia Nowacka', score: 11.75, display: '11,75 s' }
+        ],
+        metrics: [
+          { val: '11,05 s', label: 'najlepszy czas' },
+          { val: '11,41 s', label: 'średnia' },
+          { val: '0,70 s', label: 'rozstęp wyników' }
+        ]
+      },
+      '400m': {
+        title: '400 m kobiet. Jeden dystans, sześć wyników.',
+        subtitle: '17.05.2026 • kobiety open • czas w sekundach',
+        rule: 'Krótszy czas = lepszy wynik',
+        xAxis: ['0', '15', '30', '45', '60 s'],
+        unit: 's',
+        lowerIsBetter: true,
+        maxScale: 55.0,
+        rows: [
+          { athlete: 'Natalia Kaczmarek', score: 49.98, display: '49,98 s', isLeader: true },
+          { athlete: 'Anna Kiełbasińska', score: 50.85, display: '50,85 s' },
+          { athlete: 'Justyna Święty-Ersetic', score: 51.42, display: '51,42 s' },
+          { athlete: 'Iga Baumgart-Witan', score: 52.15, display: '52,15 s' },
+          { athlete: 'Alicja Wrona-Kutrzepa', score: 52.88, display: '52,88 s' },
+          { athlete: 'Karolina Łozowska', score: 53.40, display: '53,40 s' }
+        ],
+        metrics: [
+          { val: '49,98 s', label: 'najlepszy czas' },
+          { val: '51,78 s', label: 'średnia' },
+          { val: '3,42 s', label: 'rozstęp wyników' }
+        ]
+      },
+      'skok': {
+        title: 'Skok w dal kobiet. Próby finałowe.',
+        subtitle: '10.05.2026 • kobiety open • odległość w metrach',
+        rule: 'Dłuższy skok = lepszy wynik',
+        xAxis: ['0', '2', '4', '6', '8 m'],
+        unit: 'm',
+        lowerIsBetter: false,
+        maxScale: 8.0,
+        rows: [
+          { athlete: 'Nikola Horowska', score: 6.68, display: '6,68 m', isLeader: true },
+          { athlete: 'Roksana Jędraszak', score: 6.45, display: '6,45 m' },
+          { athlete: 'Anna Matuszewicz', score: 6.32, display: '6,32 m' },
+          { athlete: 'Magdalena Bokun', score: 6.20, display: '6,20 m' },
+          { athlete: 'Joanna Kłodawska', score: 6.08, display: '6,08 m' },
+          { athlete: 'Julia Adamczyk', score: 5.92, display: '5,92 m' }
+        ],
+        metrics: [
+          { val: '6,68 m', label: 'najlepszy skok' },
+          { val: '6,28 m', label: 'średnia' },
+          { val: '0,76 m', label: 'rozstęp wyników' }
+        ]
+      }
     },
-    'skok': {
-      title: 'Skok w dal. Próby finałowe.',
-      subtitle: '10.05.2026 • mężczyźni open • odległość w metrach',
-      rule: 'Dłuższy skok = lepszy wynik',
-      xAxis: ['0', '2', '4', '6', '8 m'],
-      unit: 'm',
-      lowerIsBetter: false,
-      maxScale: 8.0,
-      rows: [
-        { athlete: 'Antoni Mazur', score: 7.42, display: '7,42 m', isLeader: true },
-        { athlete: 'Wojciech Krawczyk', score: 7.30, display: '7,30 m' },
-        { athlete: 'Dawid Piotrowski', score: 7.18, display: '7,18 m' },
-        { athlete: 'Igor Grabowski', score: 7.06, display: '7,06 m' },
-        { athlete: 'Oskar Pawlak', score: 6.94, display: '6,94 m' },
-        { athlete: 'Łukasz Michalski', score: 6.82, display: '6,82 m' }
-      ],
-      metrics: [
-        { val: '7,42 m', label: 'najlepszy skok' },
-        { val: '7,12 m', label: 'średnia' },
-        { val: '0,60 m', label: 'rozstęp wyników' }
-      ]
+    all: {
+      '100m': {
+        title: '100 m open. Wszyscy startujący.',
+        subtitle: '24.05.2026 • kobiety i mężczyźni open • czas w sekundach',
+        rule: 'Krótszy czas = lepszy wynik',
+        xAxis: ['0', '3', '6', '9', '12 s'],
+        unit: 's',
+        lowerIsBetter: true,
+        maxScale: 12.0,
+        rows: [
+          { athlete: 'Jakub Nowak (M)', score: 10.84, display: '10,84 s', isLeader: true, gender: 'm' },
+          { athlete: 'Michał Kowalski (M)', score: 10.96, display: '10,96 s', gender: 'm' },
+          { athlete: 'Ewa Swoboda (K)', score: 11.05, display: '11,05 s', gender: 'k' },
+          { athlete: 'Adam Wiśniewski (M)', score: 11.08, display: '11,08 s', gender: 'm' },
+          { athlete: 'Kacper Wójcik (M)', score: 11.20, display: '11,20 s', gender: 'm' },
+          { athlete: 'Martyna Kotwiła (K)', score: 11.24, display: '11,24 s', gender: 'k' }
+        ],
+        metrics: [
+          { val: '10,84 s', label: 'najlepszy czas' },
+          { val: '11,28 s', label: 'średnia ogólna' },
+          { val: '0,91 s', label: 'rozstęp wyników' }
+        ]
+      },
+      '400m': {
+        title: '400 m open. Wszyscy startujący.',
+        subtitle: '17.05.2026 • kobiety i mężczyźni open • czas w sekundach',
+        rule: 'Krótszy czas = lepszy wynik',
+        xAxis: ['0', '15', '30', '45', '60 s'],
+        unit: 's',
+        lowerIsBetter: true,
+        maxScale: 55.0,
+        rows: [
+          { athlete: 'Mateusz Zieliński (M)', score: 48.12, display: '48,12 s', isLeader: true, gender: 'm' },
+          { athlete: 'Bartosz Szymański (M)', score: 48.76, display: '48,76 s', gender: 'm' },
+          { athlete: 'Tomasz Woźniak (M)', score: 49.20, display: '49,20 s', gender: 'm' },
+          { athlete: 'Paweł Dąbrowski (M)', score: 49.84, display: '49,84 s', gender: 'm' },
+          { athlete: 'Natalia Kaczmarek (K)', score: 49.98, display: '49,98 s', gender: 'k' },
+          { athlete: 'Marcin Kozłowski (M)', score: 50.16, display: '50,16 s', gender: 'm' }
+        ],
+        metrics: [
+          { val: '48,12 s', label: 'najlepszy czas' },
+          { val: '50,64 s', label: 'średnia ogólna' },
+          { val: '5,28 s', label: 'rozstęp wyników' }
+        ]
+      },
+      'skok': {
+        title: 'Skok w dal open. Wszyscy startujący.',
+        subtitle: '10.05.2026 • kobiety i mężczyźni open • odległość w metrach',
+        rule: 'Dłuższy skok = lepszy wynik',
+        xAxis: ['0', '2', '4', '6', '8 m'],
+        unit: 'm',
+        lowerIsBetter: false,
+        maxScale: 8.0,
+        rows: [
+          { athlete: 'Antoni Mazur (M)', score: 7.42, display: '7,42 m', isLeader: true, gender: 'm' },
+          { athlete: 'Wojciech Krawczyk (M)', score: 7.30, display: '7,30 m', gender: 'm' },
+          { athlete: 'Dawid Piotrowski (M)', score: 7.18, display: '7,18 m', gender: 'm' },
+          { athlete: 'Igor Grabowski (M)', score: 7.06, display: '7,06 m', gender: 'm' },
+          { athlete: 'Oskar Pawlak (M)', score: 6.94, display: '6,94 m', gender: 'm' },
+          { athlete: 'Nikola Horowska (K)', score: 6.68, display: '6,68 m', gender: 'k' }
+        ],
+        metrics: [
+          { val: '7,42 m', label: 'najlepszy skok' },
+          { val: '6,70 m', label: 'średnia ogólna' },
+          { val: '1,50 m', label: 'rozstęp wyników' }
+        ]
+      }
     }
   };
 
   function updateChart(disciplineKey) {
-    const data = chartDataSets[disciplineKey];
+    const genderKey = state.gender === 'kobiety' ? 'kobiety' : (state.gender === 'mezczyzni' ? 'mezczyzni' : 'all');
+    const genderGroup = chartDataSetsByGender[genderKey] || chartDataSetsByGender.all;
+    const data = genderGroup[disciplineKey] || genderGroup['100m'];
     if (!data) return;
 
     if (chartTitleEl) chartTitleEl.textContent = data.title;
@@ -763,15 +1026,49 @@ document.addEventListener('DOMContentLoaded', () => {
     const legendRule = document.querySelector('.legend-rule');
     if (legendRule) legendRule.textContent = data.rule;
 
+    // Aktualizacja etykiet i widoczności legendy
+    const legFemale = document.getElementById('legend-item-female');
+    const legMale = document.getElementById('legend-item-male');
+    const legLabelLeader = document.getElementById('legend-label-leader');
+    const legLabelFemale = document.getElementById('legend-label-female');
+    const legLabelMale = document.getElementById('legend-label-male');
+
+    if (legLabelLeader) legLabelLeader.textContent = '1. miejsce (Złoto)';
+
+    if (genderKey === 'kobiety') {
+      if (legFemale) legFemale.style.display = 'inline-flex';
+      if (legLabelFemale) legLabelFemale.textContent = 'Kobiety (Różowy)';
+      if (legMale) legMale.style.display = 'none';
+    } else if (genderKey === 'mezczyzni') {
+      if (legFemale) legFemale.style.display = 'none';
+      if (legMale) legMale.style.display = 'inline-flex';
+      if (legLabelMale) legLabelMale.textContent = 'Mężczyźni (Błękitny)';
+    } else {
+      if (legFemale) legFemale.style.display = 'inline-flex';
+      if (legLabelFemale) legLabelFemale.textContent = 'Kobiety (Różowy)';
+      if (legMale) legMale.style.display = 'inline-flex';
+      if (legLabelMale) legLabelMale.textContent = 'Mężczyźni (Błękitny)';
+    }
+
     if (barChartContainer) {
-      const rowsHtml = data.rows.map(row => {
+      const rowsHtml = data.rows.map((row, idx) => {
         const percent = Math.min(100, Math.max(10, (row.score / data.maxScale) * 100)).toFixed(2);
-        const leaderClass = row.isLeader ? ' bar-leader' : '';
+        
+        // Złoty dla 1. miejsca, Różowy dla kobiet, Błękitny dla mężczyzn
+        let barClass = '';
+        if (row.isLeader || idx === 0) {
+          barClass = ' bar-gold bar-leader';
+        } else if (row.gender === 'k' || genderKey === 'kobiety') {
+          barClass = ' bar-female';
+        } else {
+          barClass = ' bar-male';
+        }
+
         return `
           <div class="chart-row">
             <span class="row-athlete">${escapeHtml(row.athlete)}</span>
             <div class="row-track">
-              <div class="chart-bar${leaderClass}" style="--bar-width: ${percent}%;" aria-label="${escapeHtml(row.athlete)}: ${escapeHtml(row.display)}"></div>
+              <div class="chart-bar${barClass}" style="--bar-width: ${percent}%;" aria-label="${escapeHtml(row.athlete)}: ${escapeHtml(row.display)}"></div>
             </div>
             <span class="row-value">${escapeHtml(row.display)}</span>
           </div>
@@ -795,6 +1092,190 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `).join('');
     }
+  }
+
+  function updateAnalysisSection(gender) {
+    const kpiValTotal = document.getElementById('kpi-val-total');
+    const kpiDescTotal = document.getElementById('kpi-desc-total');
+    const kpiValAvg100 = document.getElementById('kpi-val-avg100');
+    const kpiDescAvg100 = document.getElementById('kpi-desc-avg100');
+    const pill = document.getElementById('analiza-category-pill');
+    const meta = document.getElementById('analiza-meta-text');
+
+    const rankingMeta100 = document.getElementById('ranking-meta-100m');
+    const rankingList100 = document.getElementById('ranking-list-100m');
+    const rankingMetaSkok = document.getElementById('ranking-meta-skok');
+    const rankingListSkok = document.getElementById('ranking-list-skok');
+    const leaderTitle = document.getElementById('leader-400m-title');
+    const leaderPerson = document.getElementById('leader-400m-person');
+    const leaderScore = document.getElementById('leader-400m-score');
+
+    if (gender === 'kobiety') {
+      if (pill) pill.textContent = 'Kobiety open';
+      if (meta) meta.textContent = 'Kobiety • 18 startów • 3 konkurencje';
+      if (kpiValTotal) kpiValTotal.textContent = '18';
+      if (kpiDescTotal) kpiDescTotal.textContent = '18 zawodniczek • wszystkie konkurencje';
+      if (kpiValAvg100) kpiValAvg100.innerHTML = '11,41 <span class="kpi-unit">s</span>';
+      if (kpiDescAvg100) kpiDescAvg100.textContent = 'Średnia arytmetyczna z 6 wyników kobiet na 100 m';
+
+      if (rankingMeta100) rankingMeta100.textContent = 'Czas rosnąco • 6 zawodniczek';
+      if (rankingList100) {
+        rankingList100.innerHTML = `
+          <li class="ranking-item">
+            <span class="rank-pos pos-1">1</span>
+            <div class="rank-details"><span class="rank-name">Ewa Swoboda</span><span class="rank-club">AZS Warszawa</span></div>
+            <div class="rank-result"><span class="rank-score">11,05 s</span><span class="badge-rz">RŻ</span></div>
+          </li>
+          <li class="ranking-item">
+            <span class="rank-pos pos-2">2</span>
+            <div class="rank-details"><span class="rank-name">Martyna Kotwiła</span><span class="rank-club">KS Sprint Kraków</span></div>
+            <div class="rank-result"><span class="rank-score">11,24 s</span><span class="badge-rz">RŻ</span></div>
+          </li>
+          <li class="ranking-item">
+            <span class="rank-pos pos-3">3</span>
+            <div class="rank-details"><span class="rank-name">Magdalena Stefanowicz</span><span class="rank-club">WKS Poznań</span></div>
+            <div class="rank-result"><span class="rank-score">11,36 s</span></div>
+          </li>
+        `;
+      }
+
+      if (rankingMetaSkok) rankingMetaSkok.textContent = 'Odległość malejąco • 6 zawodniczek';
+      if (rankingListSkok) {
+        rankingListSkok.innerHTML = `
+          <li class="ranking-item">
+            <span class="rank-pos pos-1">1</span>
+            <div class="rank-details"><span class="rank-name">Nikola Horowska</span><span class="rank-club">KS Sprint Kraków</span></div>
+            <div class="rank-result"><span class="rank-score">6,68 m</span><span class="badge-rz">RŻ</span></div>
+          </li>
+          <li class="ranking-item">
+            <span class="rank-pos pos-2">2</span>
+            <div class="rank-details"><span class="rank-name">Roksana Jędraszak</span><span class="rank-club">WKS Poznań</span></div>
+            <div class="rank-result"><span class="rank-score">6,45 m</span><span class="badge-rz">RŻ</span></div>
+          </li>
+          <li class="ranking-item">
+            <span class="rank-pos pos-3">3</span>
+            <div class="rank-details"><span class="rank-name">Anna Matuszewicz</span><span class="rank-club">AZS Warszawa</span></div>
+            <div class="rank-result"><span class="rank-score">6,32 m</span></div>
+          </li>
+        `;
+      }
+
+      if (leaderTitle) leaderTitle.textContent = 'Liderka 400 m';
+      if (leaderPerson) leaderPerson.textContent = 'Natalia Kaczmarek • AZS Warszawa';
+      if (leaderScore) leaderScore.textContent = '49,98 s';
+
+    } else if (gender === 'mezczyzni') {
+      if (pill) pill.textContent = 'Mężczyźni open';
+      if (meta) meta.textContent = 'Mężczyźni • 19 startów • 3 konkurencje';
+      if (kpiValTotal) kpiValTotal.textContent = '19';
+      if (kpiDescTotal) kpiDescTotal.textContent = '19 zawodników • wszystkie konkurencje';
+      if (kpiValAvg100) kpiValAvg100.innerHTML = '11,14 <span class="kpi-unit">s</span>';
+      if (kpiDescAvg100) kpiDescAvg100.textContent = 'Średnia arytmetyczna z wyników mężczyzn na 100 m';
+
+      if (rankingMeta100) rankingMeta100.textContent = 'Czas rosnąco • 6 zawodników';
+      if (rankingList100) {
+        rankingList100.innerHTML = `
+          <li class="ranking-item">
+            <span class="rank-pos pos-1">1</span>
+            <div class="rank-details"><span class="rank-name">Jakub Nowak</span><span class="rank-club">AZS Warszawa</span></div>
+            <div class="rank-result"><span class="rank-score">10,84 s</span><span class="badge-rz">RŻ</span></div>
+          </li>
+          <li class="ranking-item">
+            <span class="rank-pos pos-2">2</span>
+            <div class="rank-details"><span class="rank-name">Michał Kowalski</span><span class="rank-club">KS Sprint Kraków</span></div>
+            <div class="rank-result"><span class="rank-score">10,96 s</span><span class="badge-rz">RŻ</span></div>
+          </li>
+          <li class="ranking-item">
+            <span class="rank-pos pos-3">3</span>
+            <div class="rank-details"><span class="rank-name">Adam Wiśniewski</span><span class="rank-club">WKS Poznań</span></div>
+            <div class="rank-result"><span class="rank-score">11,08 s</span></div>
+          </li>
+        `;
+      }
+
+      if (rankingMetaSkok) rankingMetaSkok.textContent = 'Odległość malejąco • 6 zawodników';
+      if (rankingListSkok) {
+        rankingListSkok.innerHTML = `
+          <li class="ranking-item">
+            <span class="rank-pos pos-1">1</span>
+            <div class="rank-details"><span class="rank-name">Antoni Mazur</span><span class="rank-club">AZS Warszawa</span></div>
+            <div class="rank-result"><span class="rank-score">7,42 m</span><span class="badge-rz">RŻ</span></div>
+          </li>
+          <li class="ranking-item">
+            <span class="rank-pos pos-2">2</span>
+            <div class="rank-details"><span class="rank-name">Wojciech Krawczyk</span><span class="rank-club">KS Sprint Kraków</span></div>
+            <div class="rank-result"><span class="rank-score">7,30 m</span><span class="badge-rz">RŻ</span></div>
+          </li>
+          <li class="ranking-item">
+            <span class="rank-pos pos-3">3</span>
+            <div class="rank-details"><span class="rank-name">Dawid Piotrowski</span><span class="rank-club">WKS Poznań</span></div>
+            <div class="rank-result"><span class="rank-score">7,18 m</span></div>
+          </li>
+        `;
+      }
+
+      if (leaderTitle) leaderTitle.textContent = 'Lider 400 m';
+      if (leaderPerson) leaderPerson.textContent = 'Mateusz Zieliński • WKS Poznań';
+      if (leaderScore) leaderScore.textContent = '48,12 s';
+
+    } else {
+      if (pill) pill.textContent = 'Wszyscy open';
+      if (meta) meta.textContent = 'Cała baza • 37 startów • 3 konkurencje';
+      if (kpiValTotal) kpiValTotal.textContent = '37';
+      if (kpiDescTotal) kpiDescTotal.textContent = '37 zawodników i zawodniczek • wszystkie konkurencje';
+      if (kpiValAvg100) kpiValAvg100.innerHTML = '11,28 <span class="kpi-unit">s</span>';
+      if (kpiDescAvg100) kpiDescAvg100.textContent = 'Średnia arytmetyczna ze wszystkich wyników na 100 m';
+
+      if (rankingMeta100) rankingMeta100.textContent = 'Czas rosnąco • Top liderzy';
+      if (rankingList100) {
+        rankingList100.innerHTML = `
+          <li class="ranking-item">
+            <span class="rank-pos pos-1">1</span>
+            <div class="rank-details"><span class="rank-name">Jakub Nowak <span class="badge-gender badge-gender-m">M</span></span><span class="rank-club">AZS Warszawa</span></div>
+            <div class="rank-result"><span class="rank-score">10,84 s</span><span class="badge-rz">RŻ</span></div>
+          </li>
+          <li class="ranking-item">
+            <span class="rank-pos pos-2">2</span>
+            <div class="rank-details"><span class="rank-name">Michał Kowalski <span class="badge-gender badge-gender-m">M</span></span><span class="rank-club">KS Sprint Kraków</span></div>
+            <div class="rank-result"><span class="rank-score">10,96 s</span><span class="badge-rz">RŻ</span></div>
+          </li>
+          <li class="ranking-item">
+            <span class="rank-pos pos-3">3</span>
+            <div class="rank-details"><span class="rank-name">Ewa Swoboda <span class="badge-gender badge-gender-k">K</span></span><span class="rank-club">AZS Warszawa</span></div>
+            <div class="rank-result"><span class="rank-score">11,05 s</span><span class="badge-rz">RŻ</span></div>
+          </li>
+        `;
+      }
+
+      if (rankingMetaSkok) rankingMetaSkok.textContent = 'Odległość malejąco • Top liderzy';
+      if (rankingListSkok) {
+        rankingListSkok.innerHTML = `
+          <li class="ranking-item">
+            <span class="rank-pos pos-1">1</span>
+            <div class="rank-details"><span class="rank-name">Antoni Mazur <span class="badge-gender badge-gender-m">M</span></span><span class="rank-club">AZS Warszawa</span></div>
+            <div class="rank-result"><span class="rank-score">7,42 m</span><span class="badge-rz">RŻ</span></div>
+          </li>
+          <li class="ranking-item">
+            <span class="rank-pos pos-2">2</span>
+            <div class="rank-details"><span class="rank-name">Wojciech Krawczyk <span class="badge-gender badge-gender-m">M</span></span><span class="rank-club">KS Sprint Kraków</span></div>
+            <div class="rank-result"><span class="rank-score">7,30 m</span><span class="badge-rz">RŻ</span></div>
+          </li>
+          <li class="ranking-item">
+            <span class="rank-pos pos-3">3</span>
+            <div class="rank-details"><span class="rank-name">Dawid Piotrowski <span class="badge-gender badge-gender-m">M</span></span><span class="rank-club">WKS Poznań</span></div>
+            <div class="rank-result"><span class="rank-score">7,18 m</span></div>
+          </li>
+        `;
+      }
+
+      if (leaderTitle) leaderTitle.textContent = 'Lider 400 m (Open)';
+      if (leaderPerson) leaderPerson.textContent = 'Mateusz Zieliński (48,12 s) & Natalia Kaczmarek (49,98 s)';
+      if (leaderScore) leaderScore.textContent = '48,12 s';
+    }
+
+    // Aktualizacja wykresu
+    const currentDisc = chartDisciplineSelect ? chartDisciplineSelect.value : '100m';
+    updateChart(currentDisc);
   }
 
   if (chartDisciplineSelect) {
@@ -1639,4 +2120,5 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================================================
   checkAuthStatus();
   fetchResults();
+  updateAnalysisSection(state.gender);
 });
